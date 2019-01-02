@@ -7,10 +7,10 @@ from operator import itemgetter
 
 def pipeline():
     # raw file : NBA Season Data.csv
-    # rawfile = "../../static/DOMeasure/data/original/NBA Season Data.csv"
+    # rawfile = "../../static/skyflow/data/original/NBA Season Data.csv"
     # rawfile_rows = read(rawfile)
 
-    rows = read('../../static/DOMeasure/data/original/NBA_redundancy_erased.csv')
+    rows = read('../../static/skyflow/data/original/NBA_redundancy_erased.csv')
 
     # 중복되는 데이터가 있어서 중복 제거 -> NBA_redundancy_erased.csv
     columns_needed = ['Year', 'Player', 'nameID', 'Tm', 'G', 'ORB%', 'DRB%', 'TRB%', 'AST%', 'STL%', 'BLK%', 'Shot%']
@@ -103,13 +103,13 @@ def pipeline():
     # 1th skyline
 
     print()
-    with open('../../static/DOMeasure/data/processed/NBA_dominance.json', 'w')as f:
+    with open('../../static/skyflow/data/processed/NBA_dominance.json', 'w')as f:
         f.write(json.dumps(key_modified_rows))
         f.flush()
 
 
 def absent_list():
-    rows = readJSON('../../static/DOMeasure/data/processed/NBA_dominance.json')
+    rows = readJSON('../../static/skyflow/data/processed/NBA_dominance.json')
     years = list()
     for year in range(1978, 2016):
         years.append([x['nameID'] for x in list(filter(lambda x: int(x['year']) == year, rows))])
@@ -133,7 +133,7 @@ def absent_list():
 
 
 def nth_skyline():
-    rows = readJSON('../../static/DOMeasure/data/processed/NBA_dominance.json')
+    rows = readJSON('../../static/skyflow/data/processed/NBA_dominance.json')
     already_counted = []
     for row in rows:
         if len(row['all_dom_by']) == 0:
@@ -157,7 +157,7 @@ def nth_skyline():
         if row['nth-skyline'] > 3:
             print(row)
     # print(rows.filter(lambda x: x if ))
-    with open('../../static/DOMeasure/data/processed/NBA_nth.json', 'w')as f:
+    with open('../../static/skyflow/data/processed/NBA_nth.json', 'w')as f:
         f.write(json.dumps(rows))
         f.flush()
     print()
@@ -194,7 +194,7 @@ def nth_skyline():
 
 
 def compareline_id():
-    rows = readJSON('../../static/DOMeasure/data/processed/NBA_nth.json')
+    rows = readJSON('../../static/skyflow/data/processed/NBA_nth.json')
     results = []
     for row in rows:
         id = row['id']
@@ -222,11 +222,11 @@ def compareline_id():
         #         conflict[nth].append(pid)
         results.append({'id': id, 'dom': dom, 'dom_by': dom_by})
 
-    # with open('../../static/DOMeasure/data/processed/NBA_nth')
+    # with open('../../static/skyflow/data/processed/NBA_nth')
 
 
 def layers():
-    rows = readJSON('../../static/DOMeasure/data/processed/NBA_nth.json')
+    rows = readJSON('../../static/skyflow/data/processed/NBA_nth.json')
     layers = list()
     for y in range(1978, 2016 + 1):
         layers.append([])
@@ -234,21 +234,21 @@ def layers():
         while len(layers[int(row['year']) - 1978]) <= row['nth-skyline']:
             layers[int(row['year']) - 1978].append([])
         layers[int(row['year']) - 1978][row['nth-skyline']].append(row['id'])
-    with open('../../static/DOMeasure/data/processed/NBA_layers.json', 'w') as f:
+    with open('../../static/skyflow/data/processed/NBA_layers.json', 'w') as f:
         f.write(json.dumps(layers))
         f.flush()
 
 
 def tsne_json():
-    file = '../../static/DOMeasure/data/processed/NBA processed.json'
-    output = '../../static/DOMeasure/data/processed/NBA_tsne.json'
+    file = '../../static/skyflow/data/processed/NBA processed.json'
+    output = '../../static/skyflow/data/processed/NBA_tsne.json'
     keys = ['g', 'orb', 'drb', 'trb', 'ast', 'stk', 'blk', 'shot']
     tsne(file, keys, output)
 
 
 def vector_sum_json():
-    file = '../../static/DOMeasure/data/processed/NBA processed.json'
-    output = '../../static/DOMeasure/data/processed/NBA_vector_sum.json'
+    file = '../../static/skyflow/data/processed/NBA processed.json'
+    output = '../../static/skyflow/data/processed/NBA_vector_sum.json'
     keys = ['g', 'orb', 'drb', 'trb', 'ast', 'stk', 'blk', 'shot']
     vector_sum(file, keys, output)
 
@@ -611,8 +611,8 @@ def selected_skyline(selected_idx):
     opt = 0
     if opt == 0:  # NBA
         # data = list()
-        data = pd.read_csv('../../static/DOMeasure/data/original/nba-players-stats/filtered_tsne.csv', sep=',')
-        # with open('../../static/DOMeasure/data/original/nba-players-stats/filtered_tsne.csv', 'r') as f:
+        data = pd.read_csv('../../static/skyflow/data/original/nba-players-stats/filtered_tsne.csv', sep=',')
+        # with open('../../static/skyflow/data/original/nba-players-stats/filtered_tsne.csv', 'r') as f:
         #     csvReader = csv.reader(f, delimiter=',')
         #     for r in csvReader:
         #         data.append(r)
@@ -701,7 +701,7 @@ def selected_skyline(selected_idx):
 # def find_direct_dominating_list(normalized_rows, start_idx)
 def get_domrelation():
     data = list()
-    with open('../../static/DOMeasure/data/original/nba-players-stats/filtered_tsne.csv', 'r') as f:
+    with open('../../static/skyflow/data/original/nba-players-stats/filtered_tsne.csv', 'r') as f:
         csvReader = csv.reader(f, delimiter=',')
         for r in csvReader:
             data.append(r)
@@ -736,7 +736,7 @@ def get_domrelation():
     jsontotal = list()
     for i, row in enumerate(total):
         jsontotal.append({'id': i, 'dom': row[0], 'dom_by': row[1]})
-    with open('../../static/DOMeasure/data/original/nba-players-stats/dom.json', 'w') as f:
+    with open('../../static/skyflow/data/original/nba-players-stats/dom.json', 'w') as f:
         f.write(json.dumps(jsontotal, indent=4))
         f.flush()
 
@@ -966,19 +966,19 @@ def get_vector_minmax(rows):
 
 
 def modify_realskyline2zero():
-    rows = readJSON('../../static/DOMeasure/data/processed/NBA_vector_sum.json')['data']
+    rows = readJSON('../../static/skyflow/data/processed/NBA_vector_sum.json')['data']
     for row in rows:
         if len(row['dominated_by']) == 0:
             print(row)
             row['nth-skyline'] = 0
 
-    with open('../../static/DOMeasure/data/processed/NBA_vector_sum_modified.json', 'w') as f:
+    with open('../../static/skyflow/data/processed/NBA_vector_sum_modified.json', 'w') as f:
         f.write(json.dumps({'data': rows}))
         f.flush()
 
 
 def delete_redundant_skyline():
-    rows = readJSON('../../static/DOMeasure/data/processed/NBA_vector_sum_modified.json')['data']
+    rows = readJSON('../../static/skyflow/data/processed/NBA_vector_sum_modified.json')['data']
     for row in rows:
         erase_list = list()
         for dom_id in row['dominating']:
@@ -988,7 +988,7 @@ def delete_redundant_skyline():
         for i in erase_list:
             row['dominating'].remove(i)
 
-    with open('../../static/DOMeasure/data/processed/NBA_vector_sum_redundant_erased.json', 'w') as f:
+    with open('../../static/skyflow/data/processed/NBA_vector_sum_redundant_erased.json', 'w') as f:
         f.write(json.dumps({'data': rows}))
         f.flush()
 
@@ -996,7 +996,7 @@ def delete_redundant_skyline():
 def tsne_csv():
     lines = list()
     data = list()
-    with open('../../static/DOMeasure/data/original/nba-players-stats/filtered.csv', 'r') as f:
+    with open('../../static/skyflow/data/original/nba-players-stats/filtered.csv', 'r') as f:
         csvReader = csv.reader(f, delimiter=',')
         idx = 0
         for i, row in enumerate(csvReader):
@@ -1033,13 +1033,13 @@ def tsne_csv():
         lines[i + 1].insert(7, round(float(row[0]), 3))
         lines[i + 1].insert(8, round(float(row[1]), 3))
 
-    with open('../../static/DOMeasure/data/original/nba-players-stats/filtered_tsne.csv', 'w') as f:
+    with open('../../static/skyflow/data/original/nba-players-stats/filtered_tsne.csv', 'w') as f:
         writer = csv.writer(f)
         writer.writerows(lines)
 
 
 def baseball_redundant():
-    data = pd.read_csv('../../static/DOMeasure/data/processed/baseball.csv')
+    data = pd.read_csv('../../static/skyflow/data/processed/baseball.csv')
     print(data)
     dropped = data.drop_duplicates(['playerID', 'yearID', 'POS'])
 
@@ -1079,10 +1079,10 @@ def baseball_redundant():
     dropped = dropped[columns]
     dropped = dropped.rename(columns={'yearID': 'Year'})
     print(dropped)
-    dropped.to_csv('../../static/DOMeasure/data/processed/baseball_redundant.csv', mode='w')
+    dropped.to_csv('../../static/skyflow/data/processed/baseball_redundant.csv', mode='w')
 
 def nba_setting():
-    data = pd.read_csv('../../static/DOMeasure/data/original/NBA Season Data.csv')
+    data = pd.read_csv('../../static/skyflow/data/original/NBA Season Data.csv')
     print(data)
 if __name__ == '__main__':
     # rows = read('../data/NBA_redundancy_erased.csv')
@@ -1114,8 +1114,8 @@ if __name__ == '__main__':
     # nth_skyline()
     # compareline_id()
     # layers()
-    # yearly_tsne('../../static/DOMeasure/data/processed/NBA_nth.json',
-    #             '../../static/DOMeasure/data/processed/NBA_tsne.json')
+    # yearly_tsne('../../static/skyflow/data/processed/NBA_nth.json',
+    #             '../../static/skyflow/data/processed/NBA_tsne.json')
     # absent_list()
     # tsne_csv()
     # get_domrelation()

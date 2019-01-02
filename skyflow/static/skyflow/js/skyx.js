@@ -11,6 +11,7 @@ let new_scaleX = d3.scaleLinear().range([0, 450]).domain([-1, 1]);
 let new_scaleY = d3.scaleLinear().range([0, 450]).domain([-1, 1]);
 let colorscale = d3.scaleOrdinal(d3.schemeCategory10);
 let draw_data;
+let a = "";
 let filtered_data = [];
 let skyline_cal_btn;
 let filter_selected = [];
@@ -275,7 +276,7 @@ function set_layout() {
  */
 
 function read_nba() {
-    d3.csv("/static/DOMeasure/data/processed/NBA.csv").then(function (data) {
+    d3.csv("/static/skyflow/data/processed/NBA.csv").then(function (data) {
         original_dataset = data;
         year_data = d3.range(1978, 2016);
         year_date = d3.range(1978, 2016).map(function (d) {
@@ -315,7 +316,7 @@ function read_nba() {
 }
 
 function read_mlb() {
-    d3.csv("/static/DOMeasure/data/processed/baseball.csv").then(function (data) {
+    d3.csv("/static/skyflow/data/processed/baseball.csv").then(function (data) {
         original_dataset = data;
         year_data = d3.range(1985, 2016);
         // console.log(year_data);
@@ -343,7 +344,7 @@ function read_mlb() {
 
 
 function histogram_nba() {
-    d3.json("/static/DOMeasure/data/processed/histogram.json").then(function (data) {
+    d3.json("/static/skyflow/data/processed/histogram.json").then(function (data) {
         histogram_data = data;
         drawfilter();
     });
@@ -429,8 +430,7 @@ function set_columnsvg() {
             if (skyline_columns.indexOf(i) > -1) {
                 let idx = skyline_columns.indexOf(i)
                 skyline_columns.splice(idx, 1);
-            }
-            else {
+            } else {
                 skyline_columns.push(i)
             }
             update_selected();
@@ -627,8 +627,7 @@ function project(draw_data) {
                     d3.select('.pointid-' + d.id).select('circle')
                         .attr('fill', 'blue')
                 })
-            }
-            else {
+            } else {
                 let idx = selected_players.indexOf(d['Player ID'])
                 selected_players.splice(idx, 1);
                 // d3.select(this).selectAll('path')
@@ -1402,8 +1401,7 @@ function draw_list() {
             if (selected_players.indexOf(d[0]) < 0) {
                 selected_players.push(d[0])
                 // d3.select(this).classed('selected', true);
-            }
-            else {
+            } else {
                 let idx = selected_players.indexOf(d[0])
                 selected_players.splice(idx, 1);
                 // d3.select(this).classed('selected', false);
@@ -2290,7 +2288,7 @@ function check_sky_filtered() {
 
 
 function calculate_skyline(opt) {
-    let worker = new Worker("/static/DOMeasure/js/worker.js");
+    let worker = new Worker("/static/skyflow/js/worker.js");
     let messages = [];
     progress_bar.select('#progress')
         .attr('width', 0);
@@ -2317,7 +2315,7 @@ function calculate_skyline(opt) {
         }
 
     };
-    tsne_worker = new Worker("/static/DOMeasure/js/worker_tsne.js");
+    tsne_worker = new Worker("/static/skyflow/js/worker_tsne.js");
 
     tsne_worker.postMessage({
         type: 'INPUT_DATA',
@@ -2356,8 +2354,7 @@ function calculate_skyline(opt) {
                     tsne_calculated[year_data.indexOf(msg.year)] = CALCULATING;
                     if (msg.year === current_year)
                         draw_project(msg.year, yearly_filtered[year_data.indexOf(msg.year)]);
-                }
-                else if (tsne_calculated[year_data.indexOf(msg.year)] == CALCULATING) {
+                } else if (tsne_calculated[year_data.indexOf(msg.year)] == CALCULATING) {
                     msg.data.forEach(function (d, i) {
                         yearly_filtered[year_data.indexOf(msg.year)][i]['x'] = d[0];
                         yearly_filtered[year_data.indexOf(msg.year)][i]['y'] = d[1];
@@ -2394,7 +2391,7 @@ function calculate_skyline(opt) {
                 // }
                 // console.log('tsne_input', y_i, tsne_input);
                 // // tsne_worker.terminate()
-                // // tsne_worker = new Worker("/static/DOMeasure/js/worker_tsne.js");
+                // // tsne_worker = new Worker("/static/skyflow/js/worker_tsne.js");
                 // tsne_worker.postMessage({
                 //     type: 'INPUT_DATA',
                 //     data: tsne_input,

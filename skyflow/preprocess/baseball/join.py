@@ -12,12 +12,12 @@ if __name__ == '__main__':
     l = [(0, 1), (2, 3)]
     for a, b in l:
         print(a, b)
-    allstar = pd.read_csv('../../static/DOMeasure/data/original/baseball-databank/AllstarFull.csv')
-    batting = pd.read_csv('../../static/DOMeasure/data/original/baseball-databank/Batting.csv')
-    battingpost = pd.read_csv('../../static/DOMeasure/data/original/baseball-databank/BattingPost.csv')
-    salary = pd.read_csv('../../static/DOMeasure/data/original/baseball-databank/Salaries.csv')
-    pitching = pd.read_csv('../../static/DOMeasure/data/original/baseball-databank/Pitching.csv')
-    fielding = pd.read_csv('../../static/DOMeasure/data/original/baseball-databank/Fielding.csv')
+    allstar = pd.read_csv('../../static/skyflow/data/original/baseball-databank/AllstarFull.csv')
+    batting = pd.read_csv('../../static/skyflow/data/original/baseball-databank/Batting.csv')
+    battingpost = pd.read_csv('../../static/skyflow/data/original/baseball-databank/BattingPost.csv')
+    salary = pd.read_csv('../../static/skyflow/data/original/baseball-databank/Salaries.csv')
+    pitching = pd.read_csv('../../static/skyflow/data/original/baseball-databank/Pitching.csv')
+    fielding = pd.read_csv('../../static/skyflow/data/original/baseball-databank/Fielding.csv')
     # print(allstar, batting)
 
     merged = pd.merge(batting, salary, how='right', on=['playerID', 'yearID'])

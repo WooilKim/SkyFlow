@@ -5,21 +5,21 @@ def combine():
     player_data = list()
     players = list()
     seasons_stats = list()
-    with open('../../static/DOMeasure/data/original/nba-players-stats/player_data.csv', 'r') as f:
+    with open('../../static/skyflow/data/original/nba-players-stats/player_data.csv', 'r') as f:
         csvReader = csv.reader(f, delimiter=',')
         for r in csvReader:
             player_data.append(r)
 
         print(player_data)
 
-    with open('../../static/DOMeasure/data/original/nba-players-stats/players.csv', 'r') as f:
+    with open('../../static/skyflow/data/original/nba-players-stats/players.csv', 'r') as f:
         csvReader = csv.reader(f, delimiter=',')
         for r in csvReader:
             players.append(r)
 
         print(players)
 
-    with open('../../static/DOMeasure/data/original/nba-players-stats/seasons_stats.csv', 'r') as f:
+    with open('../../static/skyflow/data/original/nba-players-stats/seasons_stats.csv', 'r') as f:
         csvReader = csv.reader(f, delimiter=',')
         for r in csvReader:
             seasons_stats.append(r)
@@ -58,7 +58,7 @@ def combine():
             continue
         nameid = '{}{}'.format(f[2].lower().replace(' ', ''), int(f[1]) - int(f[4]))
         f.insert(1, nameid)
-    with open('../../static/DOMeasure/data/original/nba-players-stats/filtered.csv', 'w') as f:
+    with open('../../static/skyflow/data/original/nba-players-stats/filtered.csv', 'w') as f:
         writer = csv.writer(f)
         writer.writerows(filtered)
 

@@ -1,6 +1,6 @@
 'use strict';
 
-importScripts("/static/DOMeasure/js/tsne.js");
+importScripts("/static/skyflow/js/tsne.js");
 
 function isBusy() {
     postMessage({

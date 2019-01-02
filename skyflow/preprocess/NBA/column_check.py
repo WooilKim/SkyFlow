@@ -18,7 +18,7 @@ def default(o):
 
 
 def get_hist_data():
-    df = pd.read_csv('../../static/DOMeasure/data/processed/NBA.csv')
+    df = pd.read_csv('../../static/skyflow/data/processed/NBA.csv')
     columns = list(df.columns)
     print(columns)
     years = df['Year'].unique()
@@ -43,16 +43,16 @@ def get_hist_data():
     #         real_result.append([])
     # print(c, len(counts), len(bins))
     # print(result)
-    with open('../../static/DOMeasure/data/processed/histogram.json', 'w') as f:
+    with open('../../static/skyflow/data/processed/histogram.json', 'w') as f:
         f.write(json.dumps(real_result, default=default))
         # f.write(json.dumps(result, indent=4, default=default))
         f.flush()
 
 
 def check():
-    df = pd.read_csv('../../static/DOMeasure/data/original/NBA Season Data.csv')
+    df = pd.read_csv('../../static/skyflow/data/original/NBA Season Data.csv')
     print(df.columns)
-    df2 = pd.read_csv('../../static/DOMeasure/data/original/nba-players-stats/Seasons_Stats.csv')
+    df2 = pd.read_csv('../../static/skyflow/data/original/nba-players-stats/Seasons_Stats.csv')
     print(df2.columns)
     merged = pd.merge(df[['Year', 'Player', 'Player ID', 'TrueSalary']], df2, how='inner', on=['Year', 'Player'])
     print(merged.columns)
@@ -79,7 +79,7 @@ def check():
     merged = merged[columns]
     merged = merged[merged['Player ID'] != '#NAME?']
     merged.info()
-    merged.to_csv('../../static/DOMeasure/data/processed/NBA.csv')
+    merged.to_csv('../../static/skyflow/data/processed/NBA.csv')
     # print(merged.columns)
     # columns = list(merged.columns)
     # merged.info()
@@ -100,7 +100,7 @@ def check():
 
 
 def check_cardinality():
-    df = pd.read_csv('../../static/DOMeasure/data/processed/NBA.csv')
+    df = pd.read_csv('../../static/skyflow/data/processed/NBA.csv')
     print(df['Pos'].unique())
     print(df['Tm'].unique())
 

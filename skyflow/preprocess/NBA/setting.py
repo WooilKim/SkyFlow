@@ -3,7 +3,7 @@ import pandas as pd
 
 
 def nba_setting():
-    df = pd.read_csv('../../static/DOMeasure/data/original/NBA Season Data.csv')
+    df = pd.read_csv('../../static/skyflow/data/original/NBA Season Data.csv')
     df = df.dropna(subset=['TrueSalary'])
     df = df.drop(
         columns=['..1', '.', 'Production', 'Prod-Gm', 'Adjusted Production', '%Min', 'Age on Feb 1', 'Rounded Age'])
@@ -34,7 +34,7 @@ def nba_setting():
     print(dropped_columns)
     df = df[dropped_columns]
     df.index.rename('id', inplace=True)
-    df.to_csv('../../static/DOMeasure/data/processed/NBA_setting.csv', mode='w')
+    df.to_csv('../../static/skyflow/data/processed/NBA_setting.csv', mode='w')
 
 
 def salary2int(salary):
