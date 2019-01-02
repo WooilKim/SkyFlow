@@ -1,0 +1,276 @@
+body {
+    padding: 0px;
+    margin: 0px;
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+    color: #00B7FF;
+}
+
+.wrapper {
+    /*display: grid;*/
+    /*grid-auto-rows: auto;*/
+    /*grid-template-columns: 500px;*/
+    /*grid-gap: 0px;*/
+    /*display: inline;*/
+    /*left: 0px;*/
+    /*right: 0px;*/
+    /*float:left;*/
+}
+
+/*rect.selected {*/
+    /*fill: gold !important;*/
+/*}*/
+
+div.row {
+    display: inline-block;
+    width: 100%;
+}
+
+#title {
+    /*grid-column: 1;*/
+    /*grid-row: 1;*/
+    /*background-color: green;*/
+}
+
+#columns {
+    /*flex: 1;*/
+    /*background-color: blue;*/
+    /*flex-basis: 100%;*/
+    /*height: 50px;*/
+}
+
+#project_div {
+
+    /*grid-column: 2/10;*/
+    /*grid-row: 1;*/
+    /*background-color: yellow;*/
+    float: left;
+    /*flex: 2;*/
+    /*display: flex;*/
+    /*flex-direction: column;*/
+    /*height: 100px;*/
+}
+
+#compare_div {
+    /*grid-column: 5/10;*/
+    /*grid-row: 1;*/
+    /*background-color: purple;*/
+    float: left;
+    /*flex: 5;*/
+
+    /*flex: 5;*/
+    /*height: 100%;*/
+    /*display: flex;*/
+    /*flex-direction: column;*/
+}
+
+#filter_div {
+    float: left;
+    /*background-color: silver;*/
+}
+
+#list_div {
+    float: left;
+    /*background-color: green;*/
+}
+
+.point.selected > path {
+    stroke: red !important;
+    stroke-width: 1px !important;
+}
+
+.player.selected {
+    fill: red !important;
+}
+
+div.title {
+    background-color: black;
+    font-color: white;
+}
+
+#project_title {
+
+    /*height: 30px;*/
+}
+
+#compare_title {
+    /*height: 30px;*/
+}
+
+#slider {
+    /*flex: 1;*/
+    /*height: 50px;*/
+}
+
+#project {
+    /*flex: 1;*/
+}
+
+#compare_label {
+    /*width: 15px;*/
+    float: left;
+}
+
+#compare_wrapper {
+
+    /*flex: 1;*/
+    /*display: flex;*/
+    /*flex-direction: column-reverse;*/
+
+}
+
+#compare_main {
+    display: inline;
+
+}
+
+#compare {
+    /*flex: 1;*/
+    float: left;
+    overflow: scroll;
+}
+
+#compare_detail {
+    /*width: 100%;*/
+    /*height: 50px;*/
+}
+
+#list_content {
+    overflow: scroll;
+}
+
+#timeline_div {
+    /*flex: 5;*/
+    float: left;
+}
+
+#timeline {
+    overflow: scroll;
+}
+
+#info_div {
+    float: left;
+    /*flex: 1;*/
+}
+
+.links line {
+    stroke: #999;
+    stroke-opacity: 0.6;
+}
+
+.nodes circle {
+    stroke: #fff;
+    stroke-width: 1.5px;
+    fill: blue;
+}
+
+.skyline {
+    stroke: #fff;
+    stroke-width: 1.5px;
+    fill: red !important;
+}
+
+.arrow {
+    stroke-width: 4px;
+    stroke: #999;
+    stroke-opacity: 0.2;
+}
+
+#arrow {
+    stroke-width: 1px;
+    stroke-dasharray: 0;
+}
+
+.dominated {
+    stroke-width: 4px;
+    stroke: blue;
+}
+
+circle.invisible {
+    fill: none !important;
+}
+
+rect.buttonA.selected {
+    fill: blue !important;
+    stroke-width: 10px;
+}
+
+rect.buttonB.selected {
+    fill: red !important;
+    stroke-width: 10px;
+}
+
+.point.selected > .pie > path {
+    stroke-width: 2px;
+    stroke: red;
+}
+
+path.hovered {
+    opacity: 0.5 !important;
+}
+
+path.edge-selected {
+    fill: green !important;
+    opacity: 0.5 !important;
+}
+
+/* test
+*/
+
+text {
+    font: 10px sans-serif;
+}
+
+label {
+    font-size: 50px;
+}
+
+.container {
+    border: 1px solid;
+}
+
+rect.bar-selected {
+    fill: green !important;
+}
+
+#pie-container {
+    float: left;
+    width: 480px;
+    height: 480px;
+    display: inline-block;
+}
+
+#cluster-container {
+    float: left;
+    width: 349px;
+    height: 480px;
+    padding: 0;
+    display: inline-block;
+}
+
+#detail-container {
+    float: left;
+    width: 1000px;
+    height: 480px;
+    padding: 0;
+    display: inline-block;
+}
+
+.m13 > .mark-13 {
+    fill: red !important;
+}
+
+#trend-container {
+    float: none;
+    width: 100%;
+    height: 50%;
+
+    overflow: scroll;
+}
+
+#container-container {
+    width: 1835px;
+    height: 960px;
+}

@@ -1,0 +1,28 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'DOMeasure/css/style.css' %}"/>
+    <script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://unpkg.com/d3-3d/build/d3-3d.min.js"></script>
+    <script src="https://unpkg.com/d3-simple-slider@0.2.1/build/d3-simple-slider.js"></script>
+</head>
+<body>
+<div class="row">
+    <div id="project_div" style="width:500px; height:500px">
+        <div id="slider" style="width:500px; height:50px">
+
+        </div>
+        <div id="project" style="width:500px; height:450px">
+
+        </div>
+    </div>
+    <div id="compare_div" style="width:800px; height:500px"></div>
+</div>
+<div id="timeline_div"></div>
+<script type="text/javascript" src="{% static 'DOMeasure/js/project_plain.js' %}"></script>
+
+</body>
+</html>

@@ -1,0 +1,5 @@
+.idea/*
+DOMeasure/__pycache__/*
+MC2/__pycache__/*
+MC3/__pycache__/*i
+*.pyc
