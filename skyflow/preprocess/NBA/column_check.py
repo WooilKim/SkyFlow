@@ -29,7 +29,8 @@ def get_hist_data():
         real_result[c] = dict()
         print(c)
         print(np.min(df[c]), np.max(df[c]))
-        counts, bins = np.histogram(df[c], bins=100)
+        keep = ~np.isnan(df[c])
+        counts, bins = np.histogram(df[c][keep], bins=100)
         real_result[c]['bins'] = list(bins)
         cumsum = np.cumsum(counts)
         real_result[c]['histogram'] = [int(i / np.max(cumsum) * 100) for i in cumsum]
@@ -43,7 +44,7 @@ def get_hist_data():
     #         real_result.append([])
     # print(c, len(counts), len(bins))
     # print(result)
-    with open('../../static/skyflow/data/processed/histogram.json', 'w') as f:
+    with open('../../static/skyflow/data/processed/NBA_histogram.json', 'w') as f:
         f.write(json.dumps(real_result, default=default))
         # f.write(json.dumps(result, indent=4, default=default))
         f.flush()
@@ -66,7 +67,7 @@ def check():
     print(merged.columns)
     merged.index.rename('id', inplace=True)
     merged = merged.drop(columns=['Unnamed: 0'])
-    merged = merged.fillna(0)
+    # merged = merged.fillna(0)
     columns = list(merged.columns)
     idx = columns.index('Tm')
     del (columns[idx])
