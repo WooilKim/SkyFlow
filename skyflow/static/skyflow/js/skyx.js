@@ -344,7 +344,7 @@ function read_mlb() {
 
 
 function histogram_nba() {
-    d3.json("/static/skyflow/data/processed/histogram.json").then(function (data) {
+    d3.json("/static/skyflow/data/processed/NBA_histogram.json").then(function (data) {
         histogram_data = data;
         drawfilter();
     });
