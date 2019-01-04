@@ -41,7 +41,7 @@ def merge():
     print(fielding['POS'].value_counts())
     # print(merged.keys())
 
-    merged.to_csv("baseball.csv", mode="w")
+    merged.to_csv("MLB.csv", mode="w")
 
 
 def read_file_and_remove_redundancy(file):
@@ -145,7 +145,10 @@ def merge_df():
     df.index.rename('id', inplace=True)
     print(columns)
     df = df[columns]
-    df.to_csv("../../static/skyflow/data/processed/baseball.csv", mode="w")
+    df = df.rename(columns={'yearID': 'Year', 'teamID': "Tm", "playerID": "PlayerID", "POS": "Pos", "salary": "Salary"})
+    df = df[pd.notnull(df['Salary'])]
+    # df.info()
+    df.to_csv("../../static/skyflow/data/processed/MLB.csv", mode="w")
 
 
 def merge_columns(df, columns):
@@ -163,7 +166,7 @@ def default(o):
 
 
 def get_hist_data():
-    df = pd.read_csv('../../static/skyflow/data/processed/baseball.csv')
+    df = pd.read_csv('../../static/skyflow/data/processed/MLB.csv')
     columns = list(df.columns)
     print(columns)
     years = df['Year'].unique()
@@ -202,8 +205,8 @@ def mlb_pipeline():
 
 
 if __name__ == '__main__':
-    # check_na('../../static/skyflow/data/processed/baseball.csv')
+    # check_na('../../static/skyflow/data/processed/MLB.csv')
 
-    # mlb_pipeline()
-    get_hist_data()
+    mlb_pipeline()
+    # get_hist_data()
     # no

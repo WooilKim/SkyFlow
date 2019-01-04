@@ -1039,7 +1039,7 @@ def tsne_csv():
 
 
 def baseball_redundant():
-    data = pd.read_csv('../../static/skyflow/data/processed/baseball.csv')
+    data = pd.read_csv('../../static/skyflow/data/processed/MLB.csv')
     print(data)
     dropped = data.drop_duplicates(['playerID', 'yearID', 'POS'])
 
