@@ -11,6 +11,7 @@ let new_scaleX = d3.scaleLinear().range([0, 450]).domain([-1, 1]);
 let new_scaleY = d3.scaleLinear().range([0, 450]).domain([-1, 1]);
 let colorscale = d3.scaleOrdinal(d3.schemeCategory10);
 let draw_data;
+let current_dataset = '';
 let a = "";
 let filtered_data = [];
 let skyline_cal_btn;
@@ -80,95 +81,12 @@ function default_setting() {
     // sizes
     set_layout();
     set_svg();
-    // d3.select('div#project_div')
-    //     .style('border', '1px solid #292B2C');
-    // d3.select('div#filter_div')
-    //     .style('border', '1px solid #292B2C');
-    // d3.select('div#compare_div')
-    //     .style('border', '1px solid #292B2C');
-    // d3.select('div#timeline_div')
-    //     .style('border', '1px solid #292B2C');
-    // d3.select('div#project_head')
-    //     .style('background-color', '#292B2C')
-    //     .append('svg')
-    //     .attr('height', 30)
-    //     .attr('width', function () {
-    //         console.log('head', project_div.clientWidth)
-    //         return project_div.clientWidth
-    //     })
-    //     .append('text')
-    //     .text('Projection View')
-    //     .style('font-size', '15px')
-    //     .attr('y', 18)
-    //     .attr('x', 10)
-    //     .style('fill', 'white')
-    //     .style('font-weight', 'bold');
-    // d3.select('div#filter_head')
-    //     .style('background-color', '#292B2C')
-    //     .append('svg')
-    //     .attr('height', 30)
-    //     .attr('width', filter_div.clientWidth)
-    //     .append('text')
-    //     .text('Filter')
-    //     .style('font-size', '15px')
-    //     .attr('y', 18)
-    //     .attr('x', 10)
-    //     .style('fill', 'white')
-    //     .style('font-weight', 'bold');
-    // d3.select('div#compare_head')
-    //     .style('background-color', '#292B2C')
-    //     .append('svg')
-    //     .attr('height', 30)
-    //     .attr('width', 1000)
-    //     .append('text')
-    //     .text('Compare View')
-    //     .style('font-size', '15px')
-    //     .attr('y', 18)
-    //     .attr('x', 10)
-    //     .style('fill', 'white')
-    //     .style('font-weight', 'bold');
-    // d3.select('div#timeline_head')
-    //     .style('background-color', '#292B2C')
-    //     .append('svg')
-    //     .attr('height', 30)
-    //     .attr('width', 1000)
-    //     .append('text')
-    //     .text('Timeline View')
-    //     .style('font-size', '15px')
-    //     .attr('y', 18)
-    //     .attr('x', 10)
-    //     .style('fill', 'white')
-    //     .style('font-weight', 'bold');
-    //
-    //
-    // list_svg = d3.select('div#list_div')
-    //     .append('svg')
-    //     .attr('width', list_div.clientWidth)
-    //     .attr('height', list_div.clientHeight);
-    //
-    //
+    set_progress_bar();
+    // read_data();
 
-    //
-    read_nba();
-
-    // histogram_nba();
+    // histogram();
 
 }
-
-//
-// function set_title() {
-//     d3.select('div#title').append('svg')
-//         .attr('height', 20)
-//         .attr('width', window_width)
-//         .append('text')
-//         .text('SkyFlow : A Time-series Visualization of Skylines on Multi-dimensional Data')
-//         .style('font-size', '20px')
-//         .attr('y', 10)
-//         .attr('x', 10)
-//         .style('fill', 'black')
-//         .style('font-weight', 'bold')
-//         .style('alignment-baseline', 'middle')
-// }
 
 function set_svg() {
     console.log('set_svg', window_width);
@@ -275,76 +193,71 @@ function set_layout() {
 ******      READING DATA      ******
  */
 
-function read_nba() {
-    d3.csv("/static/skyflow/data/processed/NBA.csv").then(function (data) {
+function read_data(opt) {
+    d3.csv("/static/skyflow/data/processed/" + opt + ".csv").then(function (data) {
         original_dataset = data;
-        year_data = d3.range(1978, 2016);
-        year_date = d3.range(1978, 2016).map(function (d) {
-            return new Date(d, 1, 1);
-        });
+        let tmp = {};
+        switch (opt) {
+            case "MLB":
+                current_year = 1985;
+                year_data = d3.range(1985, 2016);
+                year_date = d3.range(1985, 2016).map(function (d) {
+                    return new Date(d, 1, 1);
+                });
+                original_dataset.forEach(function (p) {
+                    if (Object.keys(tmp).indexOf(p['PlayerID']) < 0) {
+
+                        tmp[p['PlayerID']] = p['PlayerID']
+                    }
+                });
+                Object.keys(tmp).forEach(function (key) {
+                    players.push([key, tmp[key]])
+                })
+                break;
+            case "NBA":
+                current_year = 1978;
+                year_data = d3.range(1978, 2016);
+                year_date = d3.range(1978, 2016).map(function (d) {
+                    return new Date(d, 1, 1);
+                });
+                original_dataset.forEach(function (p) {
+                    if (Object.keys(tmp).indexOf(p['PlayerID']) < 0) {
+
+                        tmp[p['PlayerID']] = p['Player']
+                    }
+                });
+                Object.keys(tmp).forEach(function (key) {
+                    players.push([key, tmp[key]])
+                })
+                break;
+        }
         year_data.forEach(function (d) {
             yearly_filtered.push(original_dataset.filter(x => x['Year'] == d))
         });
         columns = original_dataset.columns.slice(6,);
         filter_columns = original_dataset.columns.slice(4,);
         filter_columns.splice(0, 0, 'Year');
-        let tmp = {};
-        original_dataset.forEach(function (p) {
-            if (Object.keys(tmp).indexOf(p['Player ID']) < 0) {
 
-                tmp[p['Player ID']] = p['Player']
-            }
-        });
-        Object.keys(tmp).forEach(function (key) {
-            players.push([key, tmp[key]])
-        })
-        // players = Array.from(new Set(original_dataset.map(x => [x['Player ID'], x['Player']])));
+
+        // players = Array.from(new Set(original_dataset.map(x => [x['PlayerID'], x['Player']])));
         // players.forEach(function (d) {
         //     players_filter_dic[d] = {};
         // });
-        set_progress_bar();
+
         set_columnsvg();
         update_selected();
         draw_slider();
         for (let i in year_data) {
             tsne_calculated.push(0)
         }
-        histogram_nba();
+        histogram();
         draw_timeline();
         draw_list();
     });
 }
 
-function read_mlb() {
-    d3.csv("/static/skyflow/data/processed/baseball.csv").then(function (data) {
-        original_dataset = data;
-        year_data = d3.range(1985, 2016);
-        // console.log(year_data);
-        year_data.forEach(function (d) {
-            yearly_filtered.push(original_dataset.filter(x => x['Year'] == d))
-        });
-
-        // console.log(test);
-        let tmp = {};
-        original_dataset.forEach(function (p) {
-            if (Object.keys(tmp).indexOf(p['Player ID']) < 0) {
-
-                tmp[p['Player ID']] = p['Player']
-            }
-        });
-        Object.keys(tmp).forEach(function (key) {
-            players.push([key, tmp[key]])
-        })
-        // Array.from(new Set(original_dataset.map(x => x['Player ID'])));
-
-        // players =
-        columns = original_dataset.columns.slice(6,);
-    });
-}
-
-
-function histogram_nba() {
-    d3.json("/static/skyflow/data/processed/NBA_histogram.json").then(function (data) {
+function histogram() {
+    d3.json("/static/skyflow/data/processed/" + current_dataset + "_histogram.json").then(function (data) {
         histogram_data = data;
         drawfilter();
     });
@@ -355,6 +268,23 @@ function histogram_nba() {
 ******      SET COLUMNS      ******
  */
 function set_progress_bar() {
+
+    let dataset_select = d3.select('div#title').append('select')
+        .attr('id', 'data-selection')
+        .style('width', '130px')
+        .on('change', function () {
+            let selected = d3.select('div#title>select').property('value');
+            console.log(selected);
+            current_dataset = selected;
+            read_data(selected);
+        });
+    dataset_select.selectAll('option')
+        .data(['NBA', 'MLB'])
+        .enter()
+        .append('option')
+        .text(function (d) {
+            return d;
+        });
 
     progress_bar = d3.select('div#title').select('svg')
         .append('g')
@@ -380,7 +310,7 @@ function set_progress_bar() {
         })
         .on('click', function () {
             console.log('start');
-            calculate_skyline('nba');
+            calculate_skyline();
         });
     skyline_cal_btn.append('rect')
         .attr('width', 130)
@@ -517,7 +447,7 @@ function draw_project(year, data) {
         .enter()
         .append('g')
         .attr('class', function (d, i) {
-            return 'point year-' + yearly_filtered[year_i][i]['Year'] + ' point-' + yearly_filtered[year_i][i]['Player ID'] + ' pointid-' + yearly_filtered[year_i][i]['id'];
+            return 'point year-' + yearly_filtered[year_i][i]['Year'] + ' point-' + yearly_filtered[year_i][i]['PlayerID'] + ' pointid-' + yearly_filtered[year_i][i]['id'];
         })
         .attr('transform', function (d) {
             return 'translate(' + new_scaleX(d.x) + ',' + new_scaleY(d.y) + ')';
@@ -611,8 +541,8 @@ function project(draw_data) {
         .on('click', function (d, i) {
             let y_i = year_data.indexOf(current_year);
             console.log(d, i);
-            if (selected_players.indexOf(d['Player ID']) < 0) {
-                selected_players.push(d['Player ID']);
+            if (selected_players.indexOf(d['PlayerID']) < 0) {
+                selected_players.push(d['PlayerID']);
                 // d3.select(this).selectAll('path')
                 //     .attr('stroke', 'red')
                 //     .attr('stroke-width', '1px');
@@ -628,7 +558,7 @@ function project(draw_data) {
                         .attr('fill', 'blue')
                 })
             } else {
-                let idx = selected_players.indexOf(d['Player ID'])
+                let idx = selected_players.indexOf(d['PlayerID'])
                 selected_players.splice(idx, 1);
                 // d3.select(this).selectAll('path')
                 //     .attr('stroke', 'silver')
@@ -756,9 +686,9 @@ function draw_compare() {
         yearly_dom[y_i].forEach(function (d, i) {
             // console.log(y_i, d, i);
             if (d.dom_by.length === 0)
-                sky_filtered[y_i]['skyline'].push(yearly_filtered[y_i][i]['Player ID']);
+                sky_filtered[y_i]['skyline'].push(yearly_filtered[y_i][i]['PlayerID']);
             else
-                sky_filtered[y_i]['non-skyline'].push(yearly_filtered[y_i][i]['Player ID']);
+                sky_filtered[y_i]['non-skyline'].push(yearly_filtered[y_i][i]['PlayerID']);
         });
     }
     // yearly_filtered.forEach(function (d, i) {
@@ -769,14 +699,14 @@ function draw_compare() {
 
     for (let i = 0; i < sky_filtered.length - 1; i++) {
         // sky_filtered[i]['new'] = sky_filtered[i + 1]['skyline'].filter(x => sky_filtered[i]['skyline'].indexOf(x) < 0 && sky_filtered[i]['non-skyline'].indexOf(x) < 0);
-        sky_filtered[i]['bench'] = yearly_filtered[i + 1].map(x => x['Player ID']).filter(x => yearly_filtered[i].map(x => x['Player ID']).indexOf(x) < 0);
+        sky_filtered[i]['bench'] = yearly_filtered[i + 1].map(x => x['PlayerID']).filter(x => yearly_filtered[i].map(x => x['PlayerID']).indexOf(x) < 0);
         // sky_filtered[i]['new'].concat(sky_filtered[i + 1]['non-skyline'].filter(x => sky_filtered[i]['skyline'].indexOf(x) < 0 && sky_filtered[i]['non-skyline'].indexOf(x) < 0))
     }
     sky_filtered[sky_filtered.length - 1]['bench'] = [];
     for (let i = 1; i < sky_filtered.length; i++) {
         // sky_filtered[i]['out'] = sky_filtered[i - 1]['skyline'].filter(x => sky_filtered[i]['skyline'].indexOf(x) < 0 && sky_filtered[i]['non-skyline'].indexOf(x) < 0)
         // sky_filtered[i]['out'].concat(sky_filtered[i - 1]['non-skyline'].filter(x => sky_filtered[i]['skyline'].indexOf(x) < 0 && sky_filtered[i]['non-skyline'].indexOf(x) < 0))
-        let tmp = yearly_filtered[i - 1].map(x => x['Player ID']).filter(x => yearly_filtered[i].map(x => x['Player ID']).indexOf(x) < 0);
+        let tmp = yearly_filtered[i - 1].map(x => x['PlayerID']).filter(x => yearly_filtered[i].map(x => x['PlayerID']).indexOf(x) < 0);
         tmp.forEach(function (d) {
             if (sky_filtered[i]['bench'].indexOf(d) < 0)
                 sky_filtered[i]['bench'].push(d);
@@ -1677,7 +1607,7 @@ function filter_set() {
                         filter_ranges[column] = d3.event.selection.map(x.invert)
 
                         //filter players
-                        selected_filter_players[column] = Array.from(new Set(original_dataset.filter(p => p[column] >= filter_ranges[column][0] && p[column] <= filter_ranges[column][1]).map(p => p['Player ID'])));
+                        selected_filter_players[column] = Array.from(new Set(original_dataset.filter(p => p[column] >= filter_ranges[column][0] && p[column] <= filter_ranges[column][1]).map(p => p['PlayerID'])));
                         players.forEach(function (d, i) {
                             if (selected_filter_players[column].indexOf(d) > -1) {
                                 players[i][column] = true;
@@ -1761,7 +1691,7 @@ function drawfilter() {
         .attr('class', 'selectpicker')
         .style('width', '130px')
         .on('change', function (d) {
-            let selected = d3.select('select').property('value');
+            let selected = d3.select('div#filter>select').property('value');
             console.log(selected);
             // append to list and draw update
             // TODO : same height?
@@ -1896,7 +1826,7 @@ function draw_timeline() {
         .enter()
         .append('rect')
         .attr('class', function (d, i) {
-            return 'bar bar-' + d['Player ID'];
+            return 'bar bar-' + d['PlayerID'];
         })
         .attr('x', function (d, i, j) {
             return i * (each_attribute_width / j.length);
@@ -1925,12 +1855,12 @@ function draw_timeline() {
         })
         .on('mouseover', function (d) {
             console.log(d);
-            d3.selectAll('.bar-' + d['Player ID'])
+            d3.selectAll('.bar-' + d['PlayerID'])
                 .attr('stroke', 'silver')
                 .attr('stroke-width', 3)
         })
         .on("mouseout", function (d) {
-            d3.selectAll('.bar-' + d['Player ID'])
+            d3.selectAll('.bar-' + d['PlayerID'])
                 .attr('stroke', 'transparent')
                 .attr('stroke-width', 0)
         });
@@ -2239,7 +2169,7 @@ function draw_bars() {
             return i * (each_attribute_width / j.length);
         })
         .attr('class', function (d, i) {
-            return 'bar bar-' + d['Player ID'];
+            return 'bar bar-' + d['PlayerID'];
         })
 
         .attr('y', function (d) {
@@ -2256,12 +2186,12 @@ function draw_bars() {
         })
         .on('mouseover', function (d) {
             console.log(d);
-            d3.selectAll('.bar-' + d['Player ID'])
+            d3.selectAll('.bar-' + d['PlayerID'])
                 .attr('stroke', 'silver')
                 .attr('stroke-width', 3)
         })
         .on("mouseout", function (d) {
-            d3.selectAll('.bar-' + d['Player ID'])
+            d3.selectAll('.bar-' + d['PlayerID'])
                 .attr('stroke', 'transparent')
                 .attr('stroke-width', 0)
         });
@@ -2287,19 +2217,21 @@ function check_sky_filtered() {
 }
 
 
-function calculate_skyline(opt) {
+function calculate_skyline() {
     let worker = new Worker("/static/skyflow/js/worker.js");
     let messages = [];
     progress_bar.select('#progress')
         .attr('width', 0);
     yearly_dom = [];
-    worker.postMessage({
+    let msg = {
         'data': yearly_filtered,
-        'opt': opt,
+        'opt': current_dataset,
         'year_data': year_data,
         'selected_columns': skyline_columns,
         'columns': columns
-    });  // 워커에 메시지를 보낸다.
+    };
+    console.log('post msg', msg);
+    worker.postMessage(msg);  // 워커에 메시지를 보낸다.
 
     worker.onmessage = function (e) {
         // console.log(e);
@@ -2433,7 +2365,7 @@ function update_selected_years() {
     selected_players.forEach(function (p) {
         yearly_filtered.forEach(function (y, y_i) {
             if (selected_years.indexOf(year_data[y_i]) < 0) {
-                let tmp = y.map(x => x['Player ID']);
+                let tmp = y.map(x => x['PlayerID']);
                 if (tmp.indexOf(p) > -1) {
                     selected_years.push(year_data[y_i])
                 }

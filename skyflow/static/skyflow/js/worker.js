@@ -4,15 +4,16 @@ var i = 0; // 1씩 증가시켜서 전달할 변수
 self.onmessage = function (e) {
     console.log(e);
     // nba
-    if (e.data.opt == 'nba') {
+    if (e.data.opt == 'NBA') {
         for (let i = 0; i < e.data.year_data.length; i++)
             calculate_nba(i, e.data.data, e.data.year_data, e.data.columns, e.data.selected_columns)
     } else {
-        // baseball
+         for (let i = 0; i < e.data.year_data.length; i++)
+            calculate_mlb(i, e.data.data, e.data.year_data, e.data.columns, e.data.selected_columns)
     }
 };
 
-function calculate_baseball(y, yearly_filtered, year_data, columns, selected_skyline) {
+function calculate_mlb(y, yearly_filtered, year_data, columns, selected_skyline) {
     // let year_data = d3.range(1980, 2018);
     let year_list = [];
     // let y = year_data.indexOf(year);
@@ -50,7 +51,7 @@ function calculate_baseball(y, yearly_filtered, year_data, columns, selected_sky
     // console.log(year_list);
 
     // 1씩 증가시켜서 전달
-    postMessage({'year': 1978 + i, 'data': year_list});
+    postMessage({'year': 1985 + y, 'data': year_list});
 
     // 1초뒤에 다시 실행
 
