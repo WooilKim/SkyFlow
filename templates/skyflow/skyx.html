@@ -31,8 +31,8 @@
     {#    <script src="{% static 'skyflow/js/bootstrap-select.min.js' %}"></script>#}
     {#    <script src="{% static 'skyflow/js/i18n/defaults-en_US.js' %}"></script>#}
     {#    <script src="{% static 'skyflow/js/fisheye.js' %}"></script>#}
-{#    <script src="{% static 'skyflow/js/RadarChart.js' %}"></script>#}
-{#    <script src="{% static 'skyflow/js/tsne.js' %}"></script>#}
+    {#    <script src="{% static 'skyflow/js/RadarChart.js' %}"></script>#}
+    {#    <script src="{% static 'skyflow/js/tsne.js' %}"></script>#}
     {#    <script src="https://rawgit.com/tpreusse/radar-chart-d3/master/src/radar-chart.js"></script>#}
 
 </head>
@@ -57,22 +57,23 @@
         </div>
     </div>
 
-    <div id="compare_div">
+    <div id="flow_div">
 
-        <div id="compare_title">
+        <div id="flow_title">
             Flow View
         </div>
-        <div id="compare_wrapper">
 
-            <div id="compare_main">
-                <div id="compare_label"></div>
-                <div id="compare">
-                </div>
 
+        <div id="flow_main">
+            <div id="flow_label"></div>
+            <div id="flow">
             </div>
-            <div id="compare_detail">
 
-            </div>
+        </div>
+
+
+        <div id="flow_detail">
+
         </div>
     </div>
 
