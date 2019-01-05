@@ -142,12 +142,16 @@ def merge_df():
     del (columns[idx])
     columns.insert(3, 'POS')
     columns.insert(3, 'awardID')
-    df.index.rename('id', inplace=True)
     print(columns)
     df = df[columns]
     df = df.rename(columns={'yearID': 'Year', 'teamID': "Tm", "playerID": "PlayerID", "POS": "Pos", "salary": "Salary"})
     df = df[pd.notnull(df['Salary'])]
-    # df.info()
+
+    print(df.columns)
+    for c in list(df.columns)[5:]:
+        df[c] = df[c].fillna(0)
+    df.info()
+    df.index.rename('id', inplace=True)
     df.to_csv("../../static/skyflow/data/processed/MLB.csv", mode="w")
 
 
