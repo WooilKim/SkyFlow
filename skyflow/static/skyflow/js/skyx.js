@@ -2,7 +2,11 @@ let original_dataset, histogram_data;
 let selected_column_idx = [];
 let columns, filter_columns;
 let year_date;
-let column_svg, project_svg, flow_svg, selected_svg, timeline_svg, list_head_svg;
+let column_svg, project_svg, flow_svg, selected_svg,
+    timeline_head_svg,
+    timeline_projected_svg,
+    timeline_svg,
+    list_head_svg;
 let project_detail;
 let year_data, dom_data;
 let radius_scale = d3.scaleLinear().range([3, 10]).domain([0, 1]);
@@ -29,7 +33,7 @@ let sky_filtered = [];
 let yearly_dom = [];
 let tsne_calculated = [];
 let tsne_worker;
-
+let timeline_columns = [];
 let selected_bars = [];
 let selected_paths = [];
 let title_div_height = 30;
@@ -68,6 +72,10 @@ let list_div_height = project_div_width;
 let timeline_div_height = project_div_width;
 let info_div_height = project_div_width;
 
+let timeline_head_height = 30;
+let timeline_each_height = 50,
+    timeline_each_width = 200,
+    timeline_gap_width = 50;
 let progress_bar;
 
 let flow_label_width = 30;
@@ -124,8 +132,12 @@ function set_svg() {
     list_svg = d3.select('div#list_content')
         .append('svg')
         .attr('width', list_div.clientWidth);
-
-
+    timeline_head_svg = d3.select("div#timeline_head").append('svg')
+    // .attr('width', 2000)
+        .attr('height', timeline_head_height);
+    timeline_projected_svg = d3.select("div#timeline").append('svg')
+        .attr('width', 2000)
+        .attr('height', timeline_each_height);
     timeline_svg = d3.select("div#timeline").append('svg')
         .attr('width', 2000)
         .attr('height', 490);
@@ -179,8 +191,14 @@ function set_layout() {
     d3.select('div#list_content').style('height', list_div_height + 'px');
     //timeline view
     d3.select('div#timeline_div').style('width', timeline_div_width + 'px');
-    d3.select('div#timline_div').style('height', timeline_div_height + title_height + 'px');
+    d3.select('div#timeline_div').style('height', timeline_div_height + title_height + 'px');
 
+    d3.select('div#timeline_title').style('width', timeline_div_width + 'px');
+    d3.select('div#timeline_title').style('height', title_height + 'px');
+    d3.select('div#timeline_projected').style('width', timeline_div_width + 'px');
+    d3.select('div#timeline_projected').style('height', timeline_each_height + 'px');
+    d3.select('div#timeline').style('width', timeline_div_width + 'px');
+    d3.select('div#timeline').style('height', timeline_div_height - timeline_each_height + 'px');
     // info view
     d3.select('div#info_div').style('width', info_div_width + 'px');
     d3.select('div#info_div').style('height', info_div_height + title_height + 'px');
@@ -365,6 +383,7 @@ function set_columnsvg() {
                 skyline_columns.push(i)
             }
             update_selected();
+            draw_detail_header();
         });
 
     column_g.append('rect')
@@ -440,13 +459,19 @@ function draw_project_view() {
 function draw_project(year, data) {
     console.log('draw');
     let year_i = year_data.indexOf(year);
-    // d3.selectAll('.point').remove();
+    // d3.select('div#project').select('svg')
+    //     .select('.projectg').selectAll('.point').remove();
+
     let project_points = d3.select('div#project').select('svg')
         .select('.projectg')
         .selectAll('.point')
         .data(data)
         .enter()
+
+    project_points.exit().remove();
+    project_points
         .append('g')
+        .merge(project_points)
         .attr('class', function (d, i) {
             return 'point year-' + yearly_filtered[year_i][i]['Year'] + ' point-' + yearly_filtered[year_i][i]['PlayerID'] + ' pointid-' + yearly_filtered[year_i][i]['id'];
         })
@@ -458,7 +483,8 @@ function draw_project(year, data) {
 
 function project(draw_data) {
     // console.log('draw_data', draw_data)
-    // d3.selectAll('.point').remove();
+    // d3.select('div#project').select('svg')
+    //     .select('.projectg').selectAll('.point').remove();
     let year = draw_data[0].Year;
 
     let y_i = year_data.indexOf(+year);
@@ -631,6 +657,7 @@ function draw_slider() {
             current_year = val.getFullYear();
             // if(tsne_calculated[year_data.indexOf(current_year)])
             draw_project(current_year, yearly_filtered[year_data.indexOf(current_year)])
+            draw_detail_projected(year_data.indexOf(current_year))
         });
 
     let slider_g = d3.select("div#project_slider").select("svg")
@@ -735,7 +762,7 @@ function draw_flow() {
     let keys = ['skyline', 'non-skyline', 'bench'];
     let stack = d3.stack().keys(keys);
     let layers = stack(sky_filtered_length);
-    console.log(layers);
+
 
     let z = d3.scaleOrdinal()
         .range(['skyblue', 'pink', 'yellow']);
@@ -1114,7 +1141,7 @@ function update_flow_detail(data) {
 function draw_list() {
 
     list_head_svg
-        .attr('width', d3.max([list_div.clientWidth, 100 * filter_selected.length]));
+        .attr('width', d3.max([list_div.clientWidth, 200 + 50 * filter_selected.length]));
 
     let default_column = ['Player', 'Flow'];
     list_head_svg.selectAll('text')
@@ -1303,6 +1330,8 @@ function draw_flow_mark() {
 function draw_filter_mark() {
     list_svg
         .attr('width', d3.max([list_div.clientWidth, 200 + 50 * filter_selected.length]));
+    list_head_svg
+        .attr('width', d3.max([list_div.clientWidth, 200 + 50 * filter_selected.length]));
     list_head_svg.selectAll('.header')
         .data(filter_selected)
         .enter()
@@ -1383,6 +1412,30 @@ function draw_filter_mark() {
     // })
 }
 
+
+let isSyncingColumnScroll = false;
+let isSyncingContentScroll = false;
+let columnDiv = document.getElementById('list_column');
+let contentDiv = document.getElementById('list_content');
+
+columnDiv.onscroll = function () {
+    console.log('column scroll')
+    if (!isSyncingColumnScroll) {
+        isSyncingContentScroll = true;
+        contentDiv.scrollLeft = this.scrollLeft;
+    }
+    isSyncingColumnScroll = false;
+}
+
+contentDiv.onscroll = function () {
+    console.log('content scroll')
+    if (!isSyncingContentScroll) {
+        isSyncingColumnScroll = true;
+        columnDiv.scrollLeft = this.scrollLeft;
+    }
+    isSyncingContentScroll = false;
+}
+
 /*
 ******      FILTER VIEW      ******
  */
@@ -1418,9 +1471,9 @@ function filter_set() {
                     .range([each_filter_height - xaxis_height, padding_top]);
 
                 let axisX = d3.axisBottom(x).tickFormat(function (d) {
-                        if (d > 1000000)
+                        if (d >= 1000000)
                             return Math.floor(d / 1000000) + 'M';
-                        else if (d > 1000)
+                        else if (d >= 1000)
                             return Math.floor(d / 1000) + 'k';
                         else return d;
                     }),
@@ -1610,17 +1663,109 @@ function draw_filter_list() {
 
 
 // timeline
+function draw_detail_header() {
+    timeline_columns = skyline_columns.map(x => columns[x]);
+    timeline_head_svg.attr('width', d3.max([2000, ((timeline_each_width + timeline_gap_width) * skyline_columns.length)]))
+    timeline_head_svg.selectAll('g').remove();
+    let columns_g = timeline_head_svg.selectAll('g')
+        .data(timeline_columns)
+        .enter()
+        .append('g')
+        .attr('transform', function (d, i) {
+            return 'translate(' + ((timeline_each_width + timeline_gap_width) * i) + ',0)';
+        });
+
+    columns_g.append('rect')
+        .attr('width', timeline_each_width)
+        .attr('height', 20)
+        .attr('fill', 'white');
+
+    columns_g.append('text')
+        .text(function (d) {
+            return d;
+        })
+        .attr('fill', 'black')
+        .style('font-weight', 'bold')
+        .style('font-size', 15)
+        .style('text-anchor', 'middle')
+        .style('alignment-baseline', 'central')
+        .attr('x', timeline_each_width / 2)
+        .attr('y', 10);
+}
+
+function draw_detail_projected(y_i) {
+    timeline_projected_svg.attr('width', d3.max([2000, ((timeline_each_width + timeline_gap_width) * skyline_columns.length)]))
+    timeline_projected_svg.selectAll('g').remove();
+    let details = timeline_projected_svg.selectAll('g')
+        .data(timeline_columns)
+        .enter()
+        .append('g')
+        .attr('class', 'attr')
+
+    let bars = details.selectAll('rect')
+        .data(function (d) {
+            //
+            // let year = d3.select(this.parentNode).datum();
+            // let y_i = year_data.indexOf(year);
+            // console.log(year, y_i, yearly_filtered);
+            return yearly_filtered[y_i].sort(function (a, b) {
+                return a[d] - b[d]
+            });
+        })
+        .enter()
+        .append('rect')
+        .attr('class', function (d, i) {
+            return 'bar bar-' + d['PlayerID'];
+        })
+        .attr('x', function (d, i, j) {
+            return i * (timeline_each_width / j.length);
+        })
+        .attr('y', function (d) {
+            let attr = d3.select(this.parentNode).datum();
+            if (d[attr] === '')
+                return 50;
+            else
+                return 50 - d[attr]
+        })
+        .attr('height', function (d) {
+            let attr = d3.select(this.parentNode).datum();
+            // console.log(attr, d[attr], d);
+            if (d[attr] === '')
+                return 0;
+            else
+                return d[attr]
+        })
+        .attr('fill', function (d) {
+            let attr = d3.select(this.parentNode).datum();
+            return colorscale(skyline_columns.indexOf(attr))
+        })
+        .attr('width', function (d, i, j) {
+            return (timeline_each_width / j.length);
+        })
+        .on('mouseover', function (d) {
+            console.log(d);
+            d3.selectAll('.bar-' + d['PlayerID'])
+                .attr('stroke', 'silver')
+                .attr('stroke-width', 3)
+        })
+        .on("mouseout", function (d) {
+            d3.selectAll('.bar-' + d['PlayerID'])
+                .attr('stroke', 'transparent')
+                .attr('stroke-width', 0)
+        });
+}
+
+
 function draw_detailview() {
     let each_attribute_width = 200;
     let each_attribute_gap = 50;
     let year_padding = 150;
     console.log('columns', columns);
-    let timeline_columns = skyline_columns.map(x => columns[x]);
+
     // console.log(timeline_columns);
     timeline_svg.attr('height', d3.max([project_div_width, selected_years.length * 50]))
     timeline_svg.select('g,timeline_column').remove();
-    let columns_g = timeline_svg.append('g')
-        .attr('class', 'timeline_column');
+
     timeline_sorted = yearly_filtered.slice();
     timeline_svg.selectAll('.row').remove();
     let rows = timeline_svg.selectAll('.row')
@@ -1716,30 +1861,7 @@ function draw_detailview() {
             return 0;
         });
 
-    // columns name
-    let column_titles = columns_g.selectAll('g')
-        .data(timeline_columns)
-        .enter()
-        .append('g')
-        .attr('transform', function (d, i) {
-            return 'translate(' + (year_padding + i * (each_attribute_width + each_attribute_gap)) + ',0)';
-        });
-    column_titles.append('rect')
-        .attr('width', each_attribute_width)
-        .attr('height', 20)
-        .attr('fill', 'white');
 
-    column_titles.append('text')
-        .text(function (d) {
-            return d;
-        })
-        .attr('fill', 'black')
-        .style('font-weight', 'bold')
-        .style('font-size', 15)
-        .style('text-anchor', 'middle')
-        .style('alignment-baseline', 'central')
-        .attr('x', each_attribute_width / 2)
-        .attr('y', 10);
     // .on('click', function (d) {
     //     // d : column name
     //     // TODO
@@ -1926,6 +2048,43 @@ function draw_detailview() {
 //         })
 //
 
+}
+
+// detail view scroll sync
+
+let isSyncingDetailColumnScroll = false;
+let isSyncingDetailContentScroll = false;
+let isSyncingDetailProjectedScroll = false;
+let detailcolumnDiv = document.getElementById('timeline_head');
+let detailprojectedDiv = document.getElementById('timeline_projected');
+let detailcontentDiv = document.getElementById('timeline');
+
+detailcolumnDiv.onscroll = function () {
+    if (!isSyncingDetailColumnScroll) {
+        isSyncingDetailContentScroll = true;
+        isSyncingDetailProjectedScroll = true;
+        detailcontentDiv.scrollLeft = this.scrollLeft;
+        detailprojectedDiv.scrollLeft = this.scrollLeft;
+    }
+    isSyncingDetailColumnScroll = false;
+}
+detailprojectedDiv.onscroll = function () {
+    if (!isSyncingDetailProjectedScroll) {
+        isSyncingDetailContentScroll = true;
+        isSyncingDetailColumnScroll = true;
+        detailcontentDiv.scrollLeft = this.scrollLeft;
+        detailcolumnDiv.scrollLeft = this.scrollLeft;
+    }
+    isSyncingDetailProjectedScroll = false;
+}
+detailcontentDiv.onscroll = function () {
+    if (!isSyncingDetailContentScroll) {
+        isSyncingDetailColumnScroll = true;
+        isSyncingDetailProjectedScroll = true;
+        detailcolumnDiv.scrollLeft = this.scrollLeft;
+        detailprojectedDiv.scrollLeft = this.scrollLeft;
+    }
+    isSyncingDetailContentScroll = false;
 }
 
 function draw_flow_detail() {

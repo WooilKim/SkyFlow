@@ -150,6 +150,10 @@ div.title {
     /*height: 50px;*/
 }
 
+#list_column {
+    overflow: scroll;
+}
+
 #list_content {
     overflow: scroll;
 }
@@ -157,6 +161,11 @@ div.title {
 #timeline_div {
     /*flex: 5;*/
     float: left;
+    overflow: hidden;
+}
+
+#timeline_head {
+    overflow: scroll;
 }
 
 #timeline {
