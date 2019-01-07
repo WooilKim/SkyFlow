@@ -75,7 +75,8 @@ let info_div_height = project_div_width;
 let timeline_head_height = 30;
 let timeline_each_height = 50,
     timeline_each_width = 200,
-    timeline_gap_width = 50;
+    timeline_gap_width = 50,
+    timeline_year_padding = 150;
 let progress_bar;
 
 let flow_label_width = 30;
@@ -135,7 +136,7 @@ function set_svg() {
     timeline_head_svg = d3.select("div#timeline_head").append('svg')
     // .attr('width', 2000)
         .attr('height', timeline_head_height);
-    timeline_projected_svg = d3.select("div#timeline").append('svg')
+    timeline_projected_svg = d3.select("div#timeline_projected").append('svg')
         .attr('width', 2000)
         .attr('height', timeline_each_height);
     timeline_svg = d3.select("div#timeline").append('svg')
@@ -384,6 +385,7 @@ function set_columnsvg() {
             }
             update_selected();
             draw_detail_header();
+            draw_detail_projected(year_data.indexOf(current_year));
         });
 
     column_g.append('rect')
@@ -457,28 +459,45 @@ function draw_project_view() {
 }
 
 function draw_project(year, data) {
-    console.log('draw');
-    let year_i = year_data.indexOf(year);
+    console.log('draw_project');
+    let y_i = year_data.indexOf(year);
     // d3.select('div#project').select('svg')
     //     .select('.projectg').selectAll('.point').remove();
 
     let project_points = d3.select('div#project').select('svg')
         .select('.projectg')
         .selectAll('.point')
-        .data(data)
-        .enter()
+        .data(data);
 
+    // console.log('enter', project_points)
     project_points.exit().remove();
-    project_points
-        .append('g')
+    // console.log('exit', project_points)
+
+    let new_points = project_points
+        .enter()
+        .append('g');
+    // mouse-over시 이름 보여질 화면을 위해 미리 그려둠 (z-index 때문)
+    new_points.append('g')
+        .attr('class', 'detail');
+
+    new_points.append('circle')
+        .attr('class', function (d) {
+            return 'circlecenter ' + 'cc-' + d['id'];
+        });
+
+    new_points.append('g')
+        .attr('class', 'pie');
+
+    new_points
         .merge(project_points)
         .attr('class', function (d, i) {
-            return 'point year-' + yearly_filtered[year_i][i]['Year'] + ' point-' + yearly_filtered[year_i][i]['PlayerID'] + ' pointid-' + yearly_filtered[year_i][i]['id'];
+            return 'point year-' + yearly_filtered[y_i][i]['Year'] + ' point-' + yearly_filtered[y_i][i]['PlayerID'] + ' pointid-' + yearly_filtered[y_i][i]['id'];
         })
         .attr('transform', function (d) {
             return 'translate(' + new_scaleX(d.x) + ',' + new_scaleY(d.y) + ')';
         });
-    project(yearly_filtered[year_i]);
+
+    project(yearly_filtered[y_i]);
 }
 
 function project(draw_data) {
@@ -488,12 +507,15 @@ function project(draw_data) {
     let year = draw_data[0].Year;
 
     let y_i = year_data.indexOf(+year);
+    // console.log('y_i', y_i);
     let project_points = d3.select('div#project').select('svg')
         .select('.projectg')
         .selectAll('.point');
-    let detail_info = project_points.append('g')
-        .attr('class', 'detail');
-    let circles = project_points.append('circle')
+
+    // let detail_info = project_points.append('g')
+    //     .attr('class', 'detail');
+
+    let circles = project_points.select('circle')
         .attr('class', function (d) {
             return 'circlecenter ' + 'cc-' + d['id'];
         })
@@ -503,109 +525,25 @@ function project(draw_data) {
         .attr('r', function (d, i) {
             // console.log('radius', year, y_i, yearly_dom[y_i]);
             let tmp = d3.max(yearly_dom[y_i].map(x => x['dom'].length))
+            // console.log(i, yearly_dom[y_i][i]);
             return radius_scale(yearly_dom[y_i][i]['dom'].length / tmp);
             // return 3;
         });
-    let radius = 10;
 
     let pie = d3.pie().sort(null)
         .value(function () {
             return 100 / skyline_columns.length;
         });
+
     project_points
         .style('stroke', 'silver')
         .style('stroke-width', 0.2);
     project_points
-        .on('mouseover', function (d) {
-            // console.log(d3.select(this).select('.pie'))
-            d3.select(this).moveToFront();
-            d3.select(this).select('.pie')
-                .attr('transform', function (d) {
-                    return 'scale(4)';
-                });
-            d3.select(this).select('circle')
-                .attr('transform', function (d) {
-                    return 'scale(4)';
-                });
-            let detail = d3.select('.projectdetail')
-                .append('g')
-                .attr('class', 'detail-' + d[0])
-                .attr('transform', 'translate(' + new_scaleX(d.x) + ',' + new_scaleY(d.y) + ')');
+        .on('mouseover', project_points_mouseover)
+        .on('mouseout', project_points_mouseout)
+        .on('click', project_points_click);
 
-            detail.append('rect')
-                .attr('width', 150)
-                .attr('height', 50)
-                .attr('fill', '#292B2C')
-                .attr('x', -75)
-                .attr('y', 70)
-                .attr('rx', 6)
-                .attr('ry', 6)
-
-            detail.append('text')
-                .attr('x', 0)
-                .attr('y', 105)
-                .text(function () {
-                    if (current_dataset === "NBA")
-                        return d.Player
-                    else
-                        return d.PlayerID
-                })
-                .style('text-anchor', 'middle')
-                .style('alignment-baseline', 'ideographic')
-                .style('font-size', 15)
-                .attr('fill', 'white');
-        })
-        .on('mouseout', function (d) {
-            d3.select('.projectdetail').select('rect').remove();
-            d3.select('.projectdetail').select('text').remove();
-            d3.select(this).moveToBack();
-            d3.select(this).select('.pie')
-                .attr('transform', function (d) {
-                    return 'scale(1)';
-                })
-            d3.select(this).select('circle')
-                .attr('transform', function (d) {
-                    return 'scale(1)';
-                });
-        })
-        .on('click', function (d, i) {
-            let y_i = year_data.indexOf(current_year);
-            console.log(d, i);
-            if (selected_players.indexOf(d['PlayerID']) < 0) {
-                selected_players.push(d['PlayerID']);
-                // d3.select(this).selectAll('path')
-                //     .attr('stroke', 'red')
-                //     .attr('stroke-width', '1px');
-                d3.selectAll('.point').selectAll('circle')
-                    .attr('fill', 'white');
-
-                yearly_dom[y_i][i].dom.forEach(function (d) {
-                    d3.select('.pointid-' + d.id).select('circle')
-                        .attr('fill', 'red')
-                });
-                yearly_dom[y_i][i].dom_by.forEach(function (d) {
-                    d3.select('.pointid-' + d.id).select('circle')
-                        .attr('fill', 'blue')
-                })
-            } else {
-                let idx = selected_players.indexOf(d['PlayerID'])
-                selected_players.splice(idx, 1);
-                // d3.select(this).selectAll('path')
-                //     .attr('stroke', 'silver')
-                //     .attr('stroke-width', '0.2px');
-                d3.selectAll('.point').selectAll('circle')
-                    .attr('fill', 'white');
-            }
-            d3.selectAll('.point').classed('selected', false);
-            selected_players.forEach(function (p) {
-                d3.select('.point-' + p).classed('selected', true);
-            })
-            console.log('selected_players', selected_players);
-            update_list_content('');
-        });
-
-    project_points.append('g')
-        .attr('class', 'pie')
+    let pie_charts = project_points.select('.pie')
         .selectAll("path")
         .data(function (d, i) {
             let pd = pie(skyline_columns.map(x => d[columns[x]]));
@@ -614,13 +552,18 @@ function project(draw_data) {
                 k['inner'] = yearly_dom[y_i][i]['dom'].length / tmp;
             });
             return pd;
-        })
-        .enter()
-        .append("path")
+        });
+    pie_charts.exit().remove();
+
+    let new_pie_charts = pie_charts.enter()
+        .append("path");
+
+    new_pie_charts
+        .merge(pie_charts)
         .attr("fill", function (d, i) {
             return colorscale(i);
         })
-        .attr("d", function (d, i) {
+        .attr("d", function (d) {
             let arc = d3.arc()
                 .outerRadius(function (d) {
                     return radius_scale(d.inner) + d3.scaleLinear().domain([0, 100]).range([3, 30])(parseFloat(d.data));
@@ -630,9 +573,99 @@ function project(draw_data) {
         });
 }
 
-function update_project(year, tsne_coord) {
+function project_points_mouseover(d) {
+    // console.log(d3.select(this).select('.pie'))
+    d3.select(this).moveToFront();
+    d3.select(this).select('.pie')
+        .attr('transform', function (d) {
+            return 'scale(4)';
+        });
+    d3.select(this).select('circle')
+        .attr('transform', function (d) {
+            return 'scale(4)';
+        });
+    let detail = d3.select('.projectdetail')
+        .append('g')
+        .attr('class', 'detail-' + d[0])
+        .attr('transform', 'translate(' + new_scaleX(d.x) + ',' + new_scaleY(d.y) + ')');
+
+    detail.append('rect')
+        .attr('width', 150)
+        .attr('height', 50)
+        .attr('fill', '#292B2C')
+        .attr('x', -75)
+        .attr('y', 70)
+        .attr('rx', 6)
+        .attr('ry', 6)
+
+    detail.append('text')
+        .attr('x', 0)
+        .attr('y', 105)
+        .text(function () {
+            if (current_dataset === "NBA")
+                return d.Player
+            else
+                return d.PlayerID
+        })
+        .style('text-anchor', 'middle')
+        .style('alignment-baseline', 'ideographic')
+        .style('font-size', 15)
+        .attr('fill', 'white');
+}
+
+function project_points_mouseout() {
+    d3.select('.projectdetail').select('rect').remove();
+    d3.select('.projectdetail').select('text').remove();
+    d3.select(this).moveToBack();
+    d3.select(this).select('.pie')
+        .attr('transform', function (d) {
+            return 'scale(1)';
+        })
+    d3.select(this).select('circle')
+        .attr('transform', function (d) {
+            return 'scale(1)';
+        });
+}
+
+function project_points_click(d, i) {
+    let y_i = year_data.indexOf(current_year);
+    console.log(d, i);
+    if (selected_players.indexOf(d['PlayerID']) < 0) {
+        selected_players.push(d['PlayerID']);
+        // d3.select(this).selectAll('path')
+        //     .attr('stroke', 'red')
+        //     .attr('stroke-width', '1px');
+        d3.selectAll('.point').selectAll('circle')
+            .attr('fill', 'white');
+
+        yearly_dom[y_i][i].dom.forEach(function (d) {
+            d3.select('.pointid-' + d.id).select('circle')
+                .attr('fill', 'red')
+        });
+        yearly_dom[y_i][i].dom_by.forEach(function (d) {
+            d3.select('.pointid-' + d.id).select('circle')
+                .attr('fill', 'blue')
+        })
+    } else {
+        let idx = selected_players.indexOf(d['PlayerID'])
+        selected_players.splice(idx, 1);
+        // d3.select(this).selectAll('path')
+        //     .attr('stroke', 'silver')
+        //     .attr('stroke-width', '0.2px');
+        d3.selectAll('.point').selectAll('circle')
+            .attr('fill', 'white');
+    }
+    d3.selectAll('.point').classed('selected', false);
+    selected_players.forEach(function (p) {
+        d3.select('.point-' + p).classed('selected', true);
+    })
+    console.log('selected_players', selected_players);
+    update_list_content('');
+}
+
+function relocate_project_points() {
     // console.log('update');
-    let year_i = year_data.indexOf(year);
+
     d3.select('div#project').select('svg')
         .select('.projectg')
         .selectAll('.point')
@@ -643,7 +676,6 @@ function update_project(year, tsne_coord) {
 
 
 function draw_slider() {
-
     d3.select("div#project_slider").select("svg").selectAll('g').remove();
     let slider = d3.sliderHorizontal()
         .min(d3.min(year_date))
@@ -1596,6 +1628,8 @@ function drawfilter() {
             }
             draw_filter_list();
             draw_filter_mark();
+            draw_detail_header();
+            draw_detail_projected(year_data.indexOf(current_year));
         });
     let msg = d3.select('div#filter').append('text')
         .text('Add the filter ')
@@ -1665,6 +1699,7 @@ function draw_filter_list() {
 // timeline
 function draw_detail_header() {
     timeline_columns = skyline_columns.map(x => columns[x]);
+    timeline_columns = timeline_columns.concat(filter_selected.filter(x => timeline_columns.indexOf(x) < 0));
     timeline_head_svg.attr('width', d3.max([2000, ((timeline_each_width + timeline_gap_width) * skyline_columns.length)]))
     timeline_head_svg.selectAll('g').remove();
     let columns_g = timeline_head_svg.selectAll('g')
@@ -1672,7 +1707,7 @@ function draw_detail_header() {
         .enter()
         .append('g')
         .attr('transform', function (d, i) {
-            return 'translate(' + ((timeline_each_width + timeline_gap_width) * i) + ',0)';
+            return 'translate(' + (timeline_year_padding + (timeline_each_width + timeline_gap_width) * i) + ',0)';
         });
 
     columns_g.append('rect')
@@ -1693,27 +1728,33 @@ function draw_detail_header() {
         .attr('y', 10);
 }
 
+
 function draw_detail_projected(y_i) {
-    timeline_projected_svg.attr('width', d3.max([2000, ((timeline_each_width + timeline_gap_width) * skyline_columns.length)]))
-    timeline_projected_svg.selectAll('g').remove();
+    console.log("y_i", y_i);
+    timeline_projected_svg.attr('width', d3.max([2000, (timeline_year_padding + (timeline_each_width + timeline_gap_width) * skyline_columns.length)]))
+    // timeline_projected_svg.selectAll('g').remove();
+
     let details = timeline_projected_svg.selectAll('g')
-        .data(timeline_columns)
-        .enter()
-        .append('g')
+        .data(timeline_columns);
+    details.exit().remove();
+    let new_details = details.enter()
+        .append('g');
+    new_details.merge(details)
         .attr('class', 'attr')
+        .attr('transform', function (d, i) {
+            return 'translate(' + (timeline_year_padding + (timeline_each_width + timeline_gap_width) * i) + ',0)';
+        });
 
     let bars = details.selectAll('rect')
         .data(function (d) {
-            //
-            // let year = d3.select(this.parentNode).datum();
-            // let y_i = year_data.indexOf(year);
-            // console.log(year, y_i, yearly_filtered);
             return yearly_filtered[y_i].sort(function (a, b) {
-                return a[d] - b[d]
+                return a[d] - b[d];
             });
-        })
-        .enter()
-        .append('rect')
+        });
+    bars.exit().remove();
+    let new_bars = bars.enter()
+        .append('rect');
+    new_bars.merge(bars)
         .attr('class', function (d, i) {
             return 'bar bar-' + d['PlayerID'];
         })
@@ -2050,6 +2091,98 @@ function draw_detailview() {
 
 }
 
+function detail_append_column() {
+    /*
+        filter가 추가되면 호출
+        컬럼 이름, projected, selected에 각각 컬럼과 바그래프를 추가한다.
+     */
+
+    // title
+    let head = timeline_head_svg
+        .selectAll('g')
+        .data(timeline_columns)
+        .enter()
+        .append('g')
+        .attr('transform', function (d, i) {
+            return 'translate(' + (timeline_year_padding + (timeline_each_width + timeline_gap_width) * i) + ',0)';
+        });
+
+    head.append('rect')
+        .attr('width', timeline_each_width)
+        .attr('height', 20)
+        .attr('fill', 'white');
+
+    head.append('text')
+        .text(function (d) {
+            return d;
+        })
+        .attr('fill', 'black')
+        .style('font-weight', 'bold')
+        .style('font-size', 15)
+        .style('text-anchor', 'middle')
+        .style('alignment-baseline', 'central')
+        .attr('x', timeline_each_width / 2)
+        .attr('y', 10);
+
+    // projected
+    let projected = timeline_projected_svg.selectAll('g')
+        .data(timeline_columns)
+        .enter()
+        .append('g')
+        .attr('class', 'attr')
+        .attr('transform', function (d, i) {
+            return 'translate(' + (timeline_year_padding + (timeline_each_width + timeline_gap_width) * i) + '0)';
+        });
+
+    projected.selectAll('rect')
+        .data(function (d) {
+            return yearly_filtered[y_i].sort(function (a, b) {
+                return a[d] - b[d];
+            });
+        })
+        .enter()
+        .append('rect')
+        .attr('class', function (d, i) {
+            return 'bar bar-' + d['PlayerID'];
+        })
+        .attr('x', function (d, i, j) {
+            return i * (timeline_each_width / j.length);
+        })
+        .attr('y', function (d) {
+            let attr = d3.select(this.parentNode).datum();
+            if (d[attr] === '')
+                return 50;
+            else
+                return 50 - d[attr]
+        })
+        .attr('height', function (d) {
+            let attr = d3.select(this.parentNode).datum();
+            // console.log(attr, d[attr], d);
+            if (d[attr] === '')
+                return 0;
+            else
+                return d[attr]
+        })
+        .attr('fill', function (d) {
+            let attr = d3.select(this.parentNode).datum();
+            return colorscale(skyline_columns.indexOf(attr))
+        })
+        .attr('width', function (d, i, j) {
+            return (timeline_each_width / j.length);
+        })
+        .on('mouseover', function (d) {
+            console.log(d);
+            d3.selectAll('.bar-' + d['PlayerID'])
+                .attr('stroke', 'silver')
+                .attr('stroke-width', 3)
+        })
+        .on("mouseout", function (d) {
+            d3.selectAll('.bar-' + d['PlayerID'])
+                .attr('stroke', 'transparent')
+                .attr('stroke-width', 0)
+        });
+}
+
 // detail view scroll sync
 
 let isSyncingDetailColumnScroll = false;
@@ -2289,7 +2422,7 @@ function calculate_skyline() {
                 break;
             case 'PROGRESS_DATA':
                 // drawUpdate(msg.data);
-                if (tsne_calculated[year_data.indexOf(msg.year)] == NEVER_CALCULATED) {
+                if (tsne_calculated[year_data.indexOf(msg.year)] === NEVER_CALCULATED) {
                     msg.data.forEach(function (d, i) {
                         yearly_filtered[year_data.indexOf(msg.year)][i]['x'] = d[0];
                         yearly_filtered[year_data.indexOf(msg.year)][i]['y'] = d[1];
@@ -2297,16 +2430,17 @@ function calculate_skyline() {
                     tsne_calculated[year_data.indexOf(msg.year)] = CALCULATING;
                     if (msg.year === current_year)
                         draw_project(msg.year, yearly_filtered[year_data.indexOf(msg.year)]);
-                } else if (tsne_calculated[year_data.indexOf(msg.year)] == CALCULATING) {
+                } else if (tsne_calculated[year_data.indexOf(msg.year)] === CALCULATING) {
                     msg.data.forEach(function (d, i) {
                         yearly_filtered[year_data.indexOf(msg.year)][i]['x'] = d[0];
                         yearly_filtered[year_data.indexOf(msg.year)][i]['y'] = d[1];
                     });
                     if (msg.year === current_year)
-                        update_project(msg.year, yearly_filtered);
+                    // relocate_project_points(msg.year, yearly_filtered);
+                        relocate_project_points();
 
                 } else {
-                    // update_project(current_year, yearly_filtered);
+                    // relocate_project_points(current_year, yearly_filtered);
                 }
                 break;
 
@@ -2318,56 +2452,15 @@ function calculate_skyline() {
                     yearly_filtered[year_data.indexOf(msg.year)][i]['y'] = d[1];
                 });
                 // first year only
-
-
-                if (msg.year == current_year) {
-                    update_project(msg.year, yearly_filtered);
+                if (msg.year === current_year) {
+                    // relocate_project_points(msg.year, yearly_filtered);
+                    relocate_project_points();
                 }
-
-                // run next year
-                // calculating_year++;
-                // let y_i = year_data.indexOf(calculating_year);
-                // if (y_i == year_data.length - 1)
-                //     break;
-                // tsne_input = [];
-                // for (let ri in yearly_filtered[y_i + 1]) {
-                //     tsne_input.push(skyline_columns.map(x => +yearly_filtered[0][ri][columns[x]]));
-                // }
-                // console.log('tsne_input', y_i, tsne_input);
-                // // tsne_worker.terminate()
-                // // tsne_worker = new Worker("/static/skyflow/js/worker_tsne.js");
-                // tsne_worker.postMessage({
-                //     type: 'INPUT_DATA',
-                //     data: tsne_input,
-                // });
 
                 break;
             default:
         }
-
-        // for (y in year_data)
-        //     tsne_calculate(yearly_filtered[y], columns)
-
     }
-
-    //
-    // let project_points = project_svg.selectAll('.point')
-    //     .data(original_dataset)
-    //     .enter()
-    //     .append('g')
-    //     .attr('class', function (d) {
-    //         return 'point year-' + d['Year'] + ' point-' + d.nameid;
-    //     })
-    //     .attr('transform', function (d) {
-    //         // console.log(tsne_scale(d.tsne_x));
-    //         return 'translate(' + tsne_scale(+d.tsne_x) + ',' + tsne_scale(+d.tsne_y) + ')';
-    //     });
-    //
-    // project_points.append('circle')
-    //     .attr('r', function (d, i) {
-    //         // console.log(d[0], dom_data[d[0]]);
-    //         return radius_scale((dom_data[d[0]]['dom']).length);
-    //     });
 }
 
 
