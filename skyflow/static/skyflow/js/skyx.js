@@ -1700,7 +1700,7 @@ function draw_filter_list() {
 function draw_detail_header() {
     timeline_columns = skyline_columns.map(x => columns[x]);
     timeline_columns = timeline_columns.concat(filter_selected.filter(x => timeline_columns.indexOf(x) < 0));
-    timeline_head_svg.attr('width', d3.max([2000, ((timeline_each_width + timeline_gap_width) * skyline_columns.length)]))
+    timeline_head_svg.attr('width', d3.max([2000, (timeline_year_padding + (timeline_each_width + timeline_gap_width) * timeline_columns.length)]))
     timeline_head_svg.selectAll('g').remove();
     let columns_g = timeline_head_svg.selectAll('g')
         .data(timeline_columns)
@@ -1730,27 +1730,67 @@ function draw_detail_header() {
 
 
 function draw_detail_projected(y_i) {
-    console.log("y_i", y_i);
-    timeline_projected_svg.attr('width', d3.max([2000, (timeline_year_padding + (timeline_each_width + timeline_gap_width) * skyline_columns.length)]))
-    // timeline_projected_svg.selectAll('g').remove();
+    timeline_projected_svg.attr('width', d3.max([2000, (timeline_year_padding + (timeline_each_width + timeline_gap_width) * timeline_columns.length)]))
 
-    let details = timeline_projected_svg.selectAll('g')
+    let details = timeline_projected_svg.selectAll('.attr')
         .data(timeline_columns);
     details.exit().remove();
     let new_details = details.enter()
         .append('g');
     new_details.merge(details)
-        .attr('class', 'attr')
+        .attr('class', function (d) {
+            return 'attr ' + 'attr-' + columns.indexOf(d);
+        })
         .attr('transform', function (d, i) {
             return 'translate(' + (timeline_year_padding + (timeline_each_width + timeline_gap_width) * i) + ',0)';
         });
+    let axis_x = new_details.append('g')
+        .attr('class', function (d) {
+            console.log(d);
+            return 'axis-x'
+        });
+    // let axis_y = new_details.append('g')
+    //     .attr('class', function (d) {
+    //         console.log(d);
+    //         return 'axis-y'
+    //     });
+    new_details.selectAll('.axis-x')
+        .each(function (d) {
+            let arr = yearly_filtered[y_i].map(x => x[d]);
+            let scaleX = d3.scaleLinear().domain(d3.extent(arr)).range([0, 200]);
+            console.log('each', d, d3.select(this));
+            d3.select(this).call(
+                d3.axisBottom(scaleX).tickFormat(function (d) {
+                    if (d >= 1000000)
+                        return Math.floor(d / 1000000) + 'M';
+                    else if (d >= 1000)
+                        return Math.floor(d / 1000) + 'k';
+                    else return d;
+                })
+            );
+        });
+    // new_details.selectAll('.axis-y')
+    //     .each(function (d) {
+    //         let arr = yearly_filtered[y_i].map(x => x[d]);
+    //         let scaleX = d3.scaleLinear().domain(d3.extent(arr)).range([0, 200]);
+    //         console.log('each', d, d3.select(this));
+    //         d3.select(this).call(d3.axisBottom(scaleX));
+    //     });
 
-    let bars = details.selectAll('rect')
+    // .call(function (d) {
+    //         console.log('d', d3.select(this.parentNode).datum());
+    //
+    //         console.log('axis-x', d, arr);
+    //         return d3.axisBottom(scaleX);
+    //     })
+    console.log('new_details', new_details);
+    let bars = new_details.selectAll('rect')
         .data(function (d) {
             return yearly_filtered[y_i].sort(function (a, b) {
                 return a[d] - b[d];
             });
         });
+    console.log('bars', bars);
     bars.exit().remove();
     let new_bars = bars.enter()
         .append('rect');
@@ -1763,18 +1803,24 @@ function draw_detail_projected(y_i) {
         })
         .attr('y', function (d) {
             let attr = d3.select(this.parentNode).datum();
+            console.log('extent', d3.extent(yearly_filtered[y_i].map(x => +x[attr])));
+            let scaleattr = d3.scaleLinear().domain(d3.extent(yearly_filtered[y_i].map(x => +x[attr]))).range([0, 50]);
             if (d[attr] === '')
-                return 50;
-            else
-                return 50 - d[attr]
+                console.log('error with blank value', d);
+            else{
+                console.log(+d[attr], scaleattr(+d[attr]))
+                return 50 - scaleattr(+d[attr]);
+            }
+
         })
         .attr('height', function (d) {
             let attr = d3.select(this.parentNode).datum();
+            let scaleattr = d3.scaleLinear().domain(d3.extent(yearly_filtered[y_i].map(x => +x[attr]))).range([0, 50]);
             // console.log(attr, d[attr], d);
             if (d[attr] === '')
-                return 0;
+                console.log('error with blank value', d);
             else
-                return d[attr]
+                return scaleattr(+d[attr]);
         })
         .attr('fill', function (d) {
             let attr = d3.select(this.parentNode).datum();
@@ -1784,7 +1830,6 @@ function draw_detail_projected(y_i) {
             return (timeline_each_width / j.length);
         })
         .on('mouseover', function (d) {
-            console.log(d);
             d3.selectAll('.bar-' + d['PlayerID'])
                 .attr('stroke', 'silver')
                 .attr('stroke-width', 3)
@@ -1796,6 +1841,17 @@ function draw_detail_projected(y_i) {
         });
 }
 
+function detail_bars_mouseover(d){
+
+}
+
+function detail_bars_mouseout(d){
+
+}
+
+function detail_bars_click(d){
+
+}
 
 function draw_detailview() {
     let each_attribute_width = 200;
@@ -1805,6 +1861,7 @@ function draw_detailview() {
 
     // console.log(timeline_columns);
     timeline_svg.attr('height', d3.max([project_div_width, selected_years.length * 50]))
+    timeline_svg.attr('width', d3.max([2000, (timeline_year_padding + (timeline_each_width + timeline_gap_width) * timeline_columns.length)]))
     timeline_svg.select('g,timeline_column').remove();
 
     timeline_sorted = yearly_filtered.slice();

@@ -168,6 +168,10 @@ div.title {
     overflow: scroll;
 }
 
+#timeline_projected {
+    overflow: scroll;
+}
+
 #timeline {
     overflow: scroll;
 }
