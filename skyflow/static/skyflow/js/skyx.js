@@ -95,6 +95,33 @@ function default_setting() {
 
 }
 
+draw_info();
+
+function draw_info() {
+    d3.csv("/static/skyflow/data/processed/NBA_columns.csv").then(function (data) {
+        console.log(data);
+        let infosvg = d3.select('div#info').append('svg')
+        let infog = infosvg.selectAll('g')
+            .data(data)
+            .enter()
+            .append('g')
+            .attr('transform', function (d, i) {
+                return 'translate(0,' + i * 30 + ')';
+            })
+        infog.append('text')
+            .text(function (d) {
+                return d.column;
+            })
+            .attr('y', '10')
+        infog.append('text')
+            .text(function (d) {
+                return d.detail;
+            })
+            .attr('y', 10)
+            .attr('x', 50)
+    })
+}
+
 function set_svg() {
     console.log('set_svg', window_width);
 
@@ -1807,7 +1834,7 @@ function draw_detail_projected(y_i) {
             let scaleattr = d3.scaleLinear().domain(d3.extent(yearly_filtered[y_i].map(x => +x[attr]))).range([0, 50]);
             if (d[attr] === '')
                 console.log('error with blank value', d);
-            else{
+            else {
                 console.log(+d[attr], scaleattr(+d[attr]))
                 return 50 - scaleattr(+d[attr]);
             }
@@ -1841,15 +1868,15 @@ function draw_detail_projected(y_i) {
         });
 }
 
-function detail_bars_mouseover(d){
+function detail_bars_mouseover(d) {
 
 }
 
-function detail_bars_mouseout(d){
+function detail_bars_mouseout(d) {
 
 }
 
-function detail_bars_click(d){
+function detail_bars_click(d) {
 
 }
 
