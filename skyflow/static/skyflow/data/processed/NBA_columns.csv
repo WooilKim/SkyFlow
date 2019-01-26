@@ -25,7 +25,7 @@ WS,Win Shares
 WS/48,Win Shares Per 48 Minutes
 OBPM,Offensive Box Plus/Minus
 DBPM,Defensive Box Plus/Minus
-BPMBox Plus/Minus
+BPM,Box Plus/Minus
 VORP,Value Over Replacement
 FG,Field Goals
 FGA,Field Goal Attempts

@@ -8,7 +8,7 @@ self.onmessage = function (e) {
         for (let i = 0; i < e.data.year_data.length; i++)
             calculate_nba(i, e.data.data, e.data.year_data, e.data.columns, e.data.selected_columns)
     } else {
-         for (let i = 0; i < e.data.year_data.length; i++)
+        for (let i = 0; i < e.data.year_data.length; i++)
             calculate_mlb(i, e.data.data, e.data.year_data, e.data.columns, e.data.selected_columns)
     }
 };
@@ -29,6 +29,7 @@ function calculate_mlb(y, yearly_filtered, year_data, columns, selected_skyline)
             });
             return (arr.every(x => x >= 0) && arr.some(x => x > 0));
         });
+        answer['id'] = pid;
         answer['dom'] = dom_filtered.slice();
 
         let domby_filtered = yearly_filtered[y].slice();
@@ -78,7 +79,7 @@ function calculate_nba(y, yearly_filtered, year_data, columns, selected_skyline)
             return (arr.every(x => x >= 0) && arr.some(x => x > 0));
         });
         answer['dom'] = dom_filtered.slice();
-
+        answer['id'] = yearly_filtered[y][pid]['PlayerID'];
         let domby_filtered = yearly_filtered[y].slice();
         domby_filtered = domby_filtered.filter(function (item) {
             let player = yearly_filtered[y][pid];

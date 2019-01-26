@@ -1,0 +1,46 @@
+column,detail,min,max
+G,Games,1.0,85.0
+GS,Games Started,0.0,83.0
+MP,Minutes Played,1.0,3638.0
+PER,Player Efficiency Rating,-90.6,129.1
+TS%,True Shooting %,0.0,1.136
+3PAr,3-Point Attempt Rate,0.0,1.0
+FTr,Free Throw Rate,0.0,6.0
+ORB%,Offensive Rebound Percentage,0.0,100.0
+DRB%,Defensive Rebound Percentage,0.0,76.6
+TRB%,Total Rebound Percentage,0.0,86.4
+AST%,Assist Percentage,0.0,100.0
+STL%,Steal Percentage,0.0,24.2
+BLK%,Block Percentage,0.0,77.8
+TOV%,Turnover Percentage,0.0,100.0
+USG%,Usage Percentage,0.0,100.0
+OWS,Offensive Win Shares,-3.1,14.8
+DWS,Defensive Win Shares,-0.6,9.1
+WS,Win Shares,-1.6,20.3
+WS/48,Win Shares Per 48 Minutes,-2.519,2.123
+OBPM,Offensive Box Plus/Minus,-73.8,47.8
+DBPM,Defensive Box Plus/Minus,-29.3,46.8
+BPM,Box Plus/Minus,-86.7,36.2
+VORP,Value Over Replacement,-2.6,11.6
+FG,Field Goals,0.0,978.0
+FGA,Field Goal Attempts,0.0,2173.0
+FG%,Field Goal Percentage,0.0,1.0
+3P,3-Point Field Goals,0.0,286.0
+3PA,3-Point Field Goal Attempts,0.0,678.0
+3P%,3-Point Field Goal Percentage,0.0,1.0
+2P,2-Point Field Goals,0.0,910.0
+2PA,2-Point Field Goal Attempts,0.0,1782.0
+2P%,2-Point Field Goal Percentage,0.0,1.0
+eFG%,Effective Field Goal Percentage,0.0,1.5
+FT,Free Throws,0.0,756.0
+FTA,Free Throw Attempts,0.0,916.0
+FT%,Free Throw Percentage,0.0,1.0
+ORB,Offensive Rebounds,0.0,443.0
+DRB,Defensive Rebounds,0.0,990.0
+TRB,Total Rebounds,0.0,1288.0
+AST,Assists,0.0,1099.0
+STL,Steals,0.0,301.0
+BLK,Blocks,0.0,456.0
+TOV,Turnovers,0.0,360.0
+PF,Personal Fouls,0.0,386.0
+PTS,Points,0.0,2832.0

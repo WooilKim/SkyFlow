@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>SkyFlow : A Time-series Visualization of Skylines on Multi-dimensional Data</title>
     <link rel="stylesheet" type="text/css" href="{% static 'skyflow/css/style.css' %}"/>
     <script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
     <script src="https://unpkg.com/d3-3d/build/d3-3d.min.js"></script>
@@ -39,15 +39,17 @@
 <body>
 
 <div id="title">
-    SkyFlow : A Time-series Visualization of Skylines on Multi-dimensional Data
+    <span style="vertical-align: middle; padding-left: 10px">SkyFlow : A Time-series Visualization of Skylines on Multi-dimensional Data</span>
+</div>
+<div id="dataselect">
 </div>
 <div id="columns">
 
 </div>
 <div class="row">
     <div id="project_div">
-        <div id="project_title">
-            Projection View
+        <div id="project_title" class="title">
+            <span>Projection View</span>
         </div>
         <div id="project_slider">
 
@@ -58,11 +60,9 @@
     </div>
 
     <div id="flow_div">
-
-        <div id="flow_title">
-            Flow View
+        <div id="flow_title" class="title">
+            <span>Flow View</span>
         </div>
-
 
         <div id="flow_main">
             <div id="flow_label"></div>
@@ -79,8 +79,8 @@
 
 
     <div id="list_div">
-        <div id="list_title">
-            List View
+        <div id="list_title" class="title">
+            <span>Player List</span>
         </div>
         <div id="list_column">
         </div>
@@ -90,8 +90,8 @@
         </div>
     </div>
     <div id="filter_div">
-        <div id="filter_title">
-            Filter View
+        <div id="filter_title" class="title">
+            <span>Filter</span>
         </div>
         <div id="filter">
 
@@ -104,22 +104,39 @@
 
 </div>
 <div class="row">
+
     <div id="timeline_div">
-        <div id="timeline_title">
-            Detail View
-        </div>
-        <div id="timeline_head">
 
+        <div id="timeline_title" class="title">
+            <span>Detail View</span>
         </div>
-        <div id="timeline_projected">
+        <div id="timeline_wrapper">
+            <div id="timeline_year">
+                <div id="projected_year">
 
+                </div>
+                <div id="selected_year">
+
+                </div>
+
+            </div>
+            <div id="timeline_main">
+                <div id="timeline_head">
+                </div>
+                <div id="timeline_projected">
+
+                </div>
+
+                <div id="timeline">
+                </div>
+            </div>
         </div>
-        <div id="timeline">
-        </div>
+
+
     </div>
     <div id="info_div">
-        <div id="info_title">
-
+        <div id="info_title" class="title">
+            <span>Column Info</span>
         </div>
         <div id="info">
 

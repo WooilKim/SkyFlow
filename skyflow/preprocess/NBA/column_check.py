@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import json
+import csv
 
 
 def salary2int(salary):
@@ -15,6 +16,23 @@ def default(o):
     if isinstance(o, np.int64):
         return int(o)
     raise TypeError
+
+
+def write_min_max():
+    df = pd.read_csv('../../static/skyflow/data/processed/NBA.csv')
+    with open('../../static/skyflow/data/processed/NBA_columns.csv', 'r') as raw:
+        cooked = csv.reader(raw)
+        arr = list()
+        for record in cooked:
+            arr.append(record)
+        for a in arr[6:]:
+            a.append(df[a[0]].dropna().min())
+            a.append(df[a[0]].dropna().max())
+        with open('../../static/skyflow/data/processed/NBA_columns_extent.csv', 'w') as f:
+            f.write('column,detail,min,max\n')
+            for a in arr[6:]:
+                f.write(f'{a[0]},{a[1]},{a[2]},{a[3]}\n')
+                f.flush()
 
 
 def get_hist_data():
@@ -109,5 +127,6 @@ def check_cardinality():
 if __name__ == '__main__':
     # check()
     # check_cardinality()
-    get_hist_data()
+    # get_hist_data()
+    write_min_max()
     pass
