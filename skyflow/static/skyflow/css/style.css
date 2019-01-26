@@ -1,7 +1,7 @@
 body {
     padding: 0px;
     margin: 0px;
-    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    scrollbar-width: thin;
 }
 
 a {
@@ -31,8 +31,14 @@ div.row {
 #title {
     /*grid-column: 1;*/
     /*grid-row: 1;*/
-    /*background-color: green;*/
+    background-color: black;
+    color: white;
+    font-weight: bold;
+    vertical-align: middle;
+    height: 25px;
+    font-size: 20px;
 }
+
 
 #columns {
     /*flex: 1;*/
@@ -42,19 +48,17 @@ div.row {
 }
 
 #project_div {
-
-    /*grid-column: 2/10;*/
-    /*grid-row: 1;*/
-    /*background-color: yellow;*/
     float: left;
-    /*flex: 2;*/
-    /*display: flex;*/
-    /*flex-direction: column;*/
-    /*height: 100px;*/
+    border: 1px solid silver;
+    margin: 1px;
+    box-sizing: border-box;
 }
 
 #flow_div {
     float: left;
+    border: 1px solid silver;
+    margin: 1px;
+    box-sizing: border-box;
 }
 
 #flow_main {
@@ -70,6 +74,25 @@ div.row {
     /*flex-direction: column;*/
 }
 
+#info > svg > g:nth-child(odd) > rect {
+    fill: white;
+}
+
+#info > svg > g:nth-child(even) > rect {
+    fill: silver;
+    opacity: 0.5;
+}
+
+#list_content > svg > g:nth-child(odd) > rect {
+    fill: white;
+}
+
+/*  Define the background color for all the EVEN background rows  */
+#list_content > svg > g:nth-child(even) > rect {
+    fill: silver;
+    opacity: 0.5;
+}
+
 #flow_label {
     float: left;
 }
@@ -81,12 +104,18 @@ div.row {
 
 #filter_div {
     float: left;
+    border: 1px solid silver;
+    margin: 1px;
+    box-sizing: border-box;
     /*background-color: silver;*/
 }
 
 #list_div {
     float: left;
     /*background-color: green;*/
+    border: 1px solid silver;
+    margin: 1px;
+    box-sizing: border-box;
 }
 
 .point.selected > path {
@@ -99,9 +128,13 @@ div.row {
 }
 
 div.title {
-    background-color: black;
-    font-color: white;
+    padding-left: 5px;
+    /*background-color: black;*/
+    /*font-color: white;*/
+    /*box-sizing: border-box;*/
+    /*padding-left: 5px;*/
 }
+
 
 #project_title {
 
@@ -134,6 +167,16 @@ div.title {
 
 }
 
+div.title {
+    background-color: silver;
+    box-sizing: border-box;
+    font-size: 11px;
+}
+
+div.title > * {
+    font-size: 12px;
+}
+
 #detail_main {
     display: inline;
 
@@ -143,6 +186,7 @@ div.title {
     /*flex: 1;*/
     float: left;
     overflow: scroll;
+
 }
 
 #detail_detail {
@@ -158,10 +202,22 @@ div.title {
     overflow: scroll;
 }
 
+#timeline_year {
+    float: left;
+    width: 100px;
+}
+
+#timeline_main {
+    float: left;
+}
+
 #timeline_div {
     /*flex: 5;*/
     float: left;
     overflow: hidden;
+    border: 1px solid silver;
+    margin: 1px;
+    box-sizing: border-box;
 }
 
 #timeline_head {
@@ -172,13 +228,30 @@ div.title {
     overflow: scroll;
 }
 
+#filter_list {
+    overflow: scroll;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
 #timeline {
     overflow: scroll;
 }
 
 #info_div {
     float: left;
+    border: 1px solid silver;
+    margin: 1px;
+    box-sizing: border-box;
     /*flex: 1;*/
+}
+#selected_year{
+    overflow: scroll;
+}
+#info {
+    overflow: scroll;
 }
 
 .links line {

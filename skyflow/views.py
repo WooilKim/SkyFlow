@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
 from django.http import JsonResponse
+
+
 # from skyflow.preprocess.NBA.dominance import selected_skyline
 
 # Create your views here.
@@ -80,6 +82,16 @@ def index(request):
         'years': years
     }
     return render(request, 'skyflow/skyx.html', context)
+
+
+def lineup(request):
+    # template = loader.get_template('skyflow/index.html')
+    years = [1978 + i for i in range(39)]
+
+    context = {
+        'years': years
+    }
+    return render(request, 'skyflow/lineup.html', context)
 
 #
 # def calculate(request):
