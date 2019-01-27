@@ -16,6 +16,9 @@ d3.csv("/static/skyflow/data/processed/NBA.csv").then(function (data) {
     const builder = LineUpJS.builder(data);
     var g = d3.scaleOrdinal(d3.schemeCategory10);
 // manually define columns
+    console.log(data)
+    console.log(d3.range(1978, 2016))
+    builder.column(LineUpJS.buildCategoricalColumn('year', d3.range(1978, 2016)).color('red'))
     columns = data.columns.slice(6, 15);
     columns.forEach(function (c, c_i) {
         builder.column(LineUpJS.buildNumberColumn(c, d3.extent(data.map(x => x[c]))).color(g(c_i)))
