@@ -74,12 +74,22 @@ div.row {
     /*flex-direction: column;*/
 }
 
+#timeline > svg > g.row:nth-child(odd) > rect.bg {
+    fill: silver;
+    opacity: 0.5;
+}
+
 #info > svg > g:nth-child(odd) > rect {
     fill: white;
 }
 
 #info > svg > g:nth-child(even) > rect {
     fill: silver;
+    opacity: 0.5;
+}
+
+#list_content > svg > g.hovered > rect {
+    fill: pink !important;
     opacity: 0.5;
 }
 
@@ -247,9 +257,11 @@ div.title > * {
     box-sizing: border-box;
     /*flex: 1;*/
 }
-#selected_year{
+
+#selected_year {
     overflow: scroll;
 }
+
 #info {
     overflow: scroll;
 }
@@ -301,10 +313,10 @@ rect.buttonB.selected {
     stroke-width: 10px;
 }
 
-.point.selected > .pie > path {
-    stroke-width: 2px;
-    stroke: red;
-}
+/*.point.selected > .pie > path {*/
+/*stroke-width: 2px;*/
+/*stroke: red;*/
+/*}*/
 
 path.hovered {
     opacity: 0.5 !important;

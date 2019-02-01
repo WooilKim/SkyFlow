@@ -17,9 +17,11 @@ d3.csv("/static/skyflow/data/processed/NBA.csv").then(function (data) {
     var g = d3.scaleOrdinal(d3.schemeCategory10);
 // manually define columns
     console.log(data)
-    console.log(d3.range(1978, 2016))
-    builder.column(LineUpJS.buildCategoricalColumn('year', d3.range(1978, 2016)).color('red'))
-    columns = data.columns.slice(6, 15);
+    // console.log(d3.range(1978, 2016));
+    builder.column(LineUpJS.buildNumberColumn('Year', d3.extent(data.map(x => x['Year']))).color('red'));
+    builder.column(LineUpJS.buildStringColumn('Player').label('Name').width(100));
+    // columns = data.columns.slice(6, 15);
+    columns = ["Salary", "TRB%", "AST%", "STL%", "BLK%", "FG%", "3P%", "PF", "PTS"];
     columns.forEach(function (c, c_i) {
         builder.column(LineUpJS.buildNumberColumn(c, d3.extent(data.map(x => x[c]))).color(g(c_i)))
     });
