@@ -315,7 +315,8 @@ function read_data(opt) {
                 });
                 Object.keys(tmp).forEach(function (key) {
                     players.push([key, tmp[key]])
-                })
+                });
+
                 break;
         }
         year_data.forEach(function (d) {
@@ -337,7 +338,36 @@ function read_data(opt) {
         // players.forEach(function (d) {
         //     players_filter_dic[d] = {};
         // });
-
+        // console.log(qid);
+        // if (qid > 0) {
+        //     let tmp_columns = [];
+        //
+        //     switch (qid) {
+        //         case 1:
+        //             tmp_columns = ["2P", "PTS", "AST", "STL", "PER"];
+        //             skyline_columns = tmp_columns.map(d => columns.indexOf(d))
+        //             break;
+        //         case 2:
+        //             tmp_columns = ["2P", "PTS", "AST", "STL"];
+        //             skyline_columns = tmp_columns.map(d => columns.indexOf(d))
+        //             break;
+        //         case 3:
+        //             tmp_columns = ["BLK", "ORB", "DRB", "TRB", "ORB%"];
+        //             skyline_columns = tmp_columns.map(d => columns.indexOf(d))
+        //             break;
+        //         case 4:
+        //             tmp_columns = ["AST%", "STL%", "BLK%", "FG"];
+        //             skyline_columns = tmp_columns.map(d => columns.indexOf(d))
+        //             break;
+        //         case 5:
+        //             tmp_columns = ["G", "PTS", "TRB", "AST", "Salary"];
+        //             skyline_columns = tmp_columns.map(d => columns.indexOf(d))
+        //             break;
+        //         default:
+        //             skyline_columns = [];
+        //     }
+        //     console.log(tmp_columns)
+        // }
         set_columnsvg();
         // update_selected_column();
         draw_slider();
@@ -742,7 +772,7 @@ function project(draw_data) {
         .attr("fill", function (d, i) {
             return colorscale(i);
         })
-        .attr("d", function (d,i) {
+        .attr("d", function (d, i) {
             let arc = d3.arc()
                 .outerRadius(function (d) {
                     return radius_scale(d.inner) + d3.scaleLinear().domain(column_extents[columns[skyline_columns[i]]]).range([3, 30])(parseFloat(d.data));

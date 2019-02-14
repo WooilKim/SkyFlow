@@ -242,9 +242,9 @@ div.title > * {
     overflow: scroll;
 }
 
-::-webkit-scrollbar {
-    display: none;
-}
+/*::-webkit-scrollbar {*/
+    /*display: none;*/
+/*}*/
 
 #timeline {
     overflow: scroll;

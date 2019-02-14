@@ -74,23 +74,50 @@ from django.http import JsonResponse
 #     return render(request, 'skyflow/mapbox.html', context)
 #
 
-def index(request):
+def glyph(request):
+    context = {}
+    return render(request, 'skyflow/glyph.html', context)
+
+
+def index(request, question_id):
     # template = loader.get_template('skyflow/index.html')
-    years = [1978 + i for i in range(39)]
+    # years = [1978 + i for i in range(39)]
 
     context = {
-        'years': years
+        'qid': question_id
     }
     return render(request, 'skyflow/skyx.html', context)
 
 
-def lineup(request):
+def lineup(request, question_id):
     # template = loader.get_template('skyflow/index.html')
-    years = [1978 + i for i in range(39)]
-
-    context = {
-        'years': years
-    }
+    context = dict()
+    context['qid'] = question_id
+    # if question_id == 6:
+    #     context = {
+    #         'columns': ["2P", "PTS", "AST", "STL", "PER"]
+    #     }
+    # elif question_id == 7:
+    #     context = {
+    #         'columns': ["2P", "PTS", "AST", "STL"]
+    #     }
+    # elif question_id == 8:
+    #     context = {
+    #         'columns': ["BLK", "ORB", "DRB", "TRB", "ORB%"]
+    #     }
+    # elif question_id == 9:
+    #     context = {
+    #         'columns': ["AST%", "STL%", "BLK%", "FG"]
+    #     }
+    # elif question_id == 10:
+    #     context = {
+    #         'columns': ["G", "PTS", "TRB", "AST", "Salary"]
+    #     }
+    # else:
+    #     context = {
+    #         'columns': ["Salary", "2P", "PTS", "AST", "STL", "PER", "G", "FG", "BLK", "ORB", "DRB", "TRB", "ORB%",
+    #                     "DRB%", "TRB%", "AST%", "STL%", "BLK%", "FG%", "3P%", "PF", "PTS"]
+    #     }
     return render(request, 'skyflow/lineup.html', context)
 
 #
