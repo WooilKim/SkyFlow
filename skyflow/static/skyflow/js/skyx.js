@@ -15,7 +15,10 @@ let radius_scale = d3.scaleLinear().range([3, 10]).domain([0, 1]);
 let tsne_scale = d3.scaleLinear().range([0, 450]).domain([-1, 1]);
 let new_scaleX = d3.scaleLinear().range([0, 450]).domain([-1, 1]);
 let new_scaleY = d3.scaleLinear().range([0, 450]).domain([-1, 1]);
-let colorscale = d3.scaleOrdinal(d3.schemeCategory10);
+const SKYLINE_COLOR = '#4A6FE3',
+    NON_SKYLINE_COLOR = '#D33F6A',
+    BENCH_COLOR = 'grey';
+let colorscale = d3.scaleOrdinal(["#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "#c49c94", "#e377c2", "#f7b6d2", "#7f7f7f", "#c7c7c7", "#bcbd22", "#dbdb8d", "#17becf", "#9edae5"]);
 let selected_player_colorscale = d3.scaleOrdinal(["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"].reverse())
 let draw_data;
 let current_dataset = '';
@@ -987,8 +990,8 @@ function draw_flow() {
             return 50 * year_data.length;
         })
         .attr('height', project_div.clientWidth);
-    let gap_between_bars = 50;
-    let width_of_bars = 10;
+    let gap_between_bars = 60;
+    let width_of_bars = 15;
     let padding_left = 30;
     let detail_height = 50;
     flow_svg.select('.yearlabel').selectAll('g').remove();
@@ -1052,10 +1055,10 @@ function draw_flow() {
     let keys = ['skyline', 'non-skyline', 'bench'];
     let stack = d3.stack().keys(keys);
     let layers = stack(sky_filtered_length);
-
+    let bar_width = 20;
 
     let z = d3.scaleOrdinal()
-        .range(['skyblue', 'pink', 'yellow']);
+        .range([SKYLINE_COLOR, NON_SKYLINE_COLOR, BENCH_COLOR]);
     // ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"]);
     let label_svg = d3.select('div#flow_label').append('svg')
         .attr('width', 15)
@@ -1090,7 +1093,7 @@ function draw_flow() {
         })
         .attr('x', 0)
         .attr('y', 0)
-        .attr('width', 15)
+        .attr('width', bar_width)
         .attr('height', (project_div.clientWidth - title_div_height) / 3);
     lb.append('text')
         .text(function (d) {
@@ -1133,14 +1136,10 @@ function draw_flow() {
         // console.log('st', s_idxs, t_idxs);
         for (c1 in keys) {
             for (c2 in keys) {
-                // console.log('c1c2', c1, c2)
-                // console.log(sky_filtered[y][keys[c1]], sky_filtered[y + 1][keys[c2]])
                 let con = sky_filtered[y][keys[c1]].filter(function (d) {
                     return sky_filtered[y + 1][keys[c2]].indexOf(d) > -1
                 });
                 if (con.length > 0)
-                // console.log(sky_filtered[y][keys[c1]], sky_filtered[y + 1][keys[c2]], con)
-                // console.log('len', con)
                     if (con.length > 0) {
                         let p1 = {
                             'x': 0,
@@ -1152,6 +1151,28 @@ function draw_flow() {
                             'key': c1
                         };
                         let p2 = {
+                            'x': 0,
+                            'y0': s_idxs[c1],
+                            'y1': (s_idxs[c1] + con.length),
+                            // 'y0': s_idxs[c1] * 0.9 + t_idxs[c2] * 0.1,
+                            // 'y1': (s_idxs[c1] + con.length) * 0.9 + (t_idxs[c2] + con.length) * 0.1,
+                            'info': 'ss',
+                            'year': year_data[y],
+                            'values': con,
+                            'key': c1
+                        };
+                        let p3 = {
+                            'x': 1,
+                            'y0': t_idxs[c2],
+                            'y1': t_idxs[c2] + con.length,
+                            // 'y0': s_idxs[c1] * 0.1 + t_idxs[c2] * 0.9,
+                            // 'y1': (s_idxs[c1] + con.length) * 0.1 + (t_idxs[c2] + con.length) * 0.9,
+                            'info': 'tt',
+                            'year': year_data[y] + 1,
+                            'values': con,
+                            'key': c2
+                        };
+                        let p4 = {
                             'x': 1,
                             'y0': t_idxs[c2],
                             'y1': t_idxs[c2] + con.length,
@@ -1162,7 +1183,7 @@ function draw_flow() {
                         };
                         s_idxs[c1] += con.length;
                         t_idxs[c2] += con.length;
-                        paths.push([p1, p2]);
+                        paths.push([p1, p2, p3, p4]);
                     }
             }
         }
@@ -1193,6 +1214,7 @@ function draw_flow() {
             // if (selected_players.length == 0)
             return (i * gap_between_bars);
         })
+        .attr('stroke', 'black')
         .attr("y", function (d, i) {
             // console.log(d, i, d3.select(this.parentNode).datum());
             // if (d3.select(this.parentNode).datum().key === 'new')
@@ -1234,7 +1256,6 @@ function draw_flow() {
         })
         .on('mouseover', function (d, i) {
             d3.select(this)
-                .attr('stroke-width', '2px')
                 .attr('stroke', 'white');
 
             let parentClass = d3.select(this.parentNode).attr('class');
@@ -1268,7 +1289,8 @@ function draw_flow() {
         })
         .on('mouseout', function (d) {
             d3.select(this)
-                .attr('stroke-width', '0px')
+                .attr('stroke', 'black');
+
             // let val = d[1] - d[0];
             // let keys = ['skyline', 'non-skyline', 'new', 'out'];
             // let find = keys.filter(x => d.data[x] == val);
@@ -1293,26 +1315,78 @@ function draw_flow() {
             update_flow_detail(tmp)
 
         })
-
+    let gap = 5;
+    let padding_between = 0;
     let areaGenerator = d3.area()
         .x(function (d, i) {
             if (d.info === 's')
-                return gap_between_bars * (year_data.indexOf(d.year)) + padding_left + 10 + 20 * d.x;
-            else
-                return gap_between_bars * (year_data.indexOf(d.year)) + padding_left + width_of_bars - 10 - 20 * d.x;
+                return gap_between_bars * (year_data.indexOf(d.year)) + padding_left + padding_between + 5 + 30 * d.x;
+            else if (d.info === 'ss')
+                return gap_between_bars * (year_data.indexOf(d.year)) + padding_left + padding_between + 5 + 30 * d.x + gap;
+            else if (d.info === 'tt')
+                return gap_between_bars * (year_data.indexOf(d.year)) + padding_left + width_of_bars - padding_between - 25 * d.x - gap;
+            else if (d.info === 't')
+                return gap_between_bars * (year_data.indexOf(d.year)) + padding_left + width_of_bars - padding_between - 25 * d.x;
 
         })
         .y0(function (d) {
             // console.log(d)
             // if (+d.key < 2)
-
             return d.key * 10 + y(d.y0);
         })
         .y1(function (d) {
             // if (+d.key < 2)
             return d.key * 10 + y(d.y1);
+        })
+        .curve(d3.curveBasis);
+
+    // const gradient = link.append("linearGradient")
+    //     .attr("id", d => (d.uid = DOM.uid("link")).id)
+    //     .attr("gradientUnits", "userSpaceOnUse")
+    //     .attr("x1", d => d.source.x1)
+    //     .attr("x2", d => d.target.x0);
+    //
+    // gradient.append("stop")
+    //     .attr("offset", "0%")
+    //     .attr("stop-color", d => color(d.source.name));
+    //
+    // gradient.append("stop")
+    //     .attr("offset", "100%")
+    //     .attr("stop-color", d => color(d.target.name));
+    flow_svg.select('defs').remove();
+    let grads = flow_svg.append('defs').selectAll('linearGradient')
+        .data(paths)
+        .enter()
+        .append('linearGradient')
+        .attr('id', (d, i) => {
+            return 'grad-' + i
+        })
+        .attr('gradientUnits', 'userSpaceOnUse');
+
+    grads
+        .attr('x1', d => {
+            return gap_between_bars * (year_data.indexOf(d[0].year)) + padding_left + padding_between + 5 + 30 * d[0].x
+        })
+        .attr('y1', d => {
+            return d[0].key * 10 + y(d[0].y0);
+        })
+        .attr('x2', d => {
+            return gap_between_bars * (year_data.indexOf(d[3].year)) + padding_left + width_of_bars - padding_between - 25 * d[3].x;
+        })
+        .attr('y2', d => {
+            return d[3].key * 10 + y(d[3].y0);
         });
 
+    grads.append("stop")
+        .attr("offset", "30%")
+        .attr("stop-color", function (d) {
+            return z(d[0].key)
+        });
+    grads.append("stop")
+        .attr("offset", "70%")
+        .attr("stop-color", function (d) {
+            return z(d[3].key)
+        });
     flow_svg.select('.paths')
         .attr('transform', 'translate(-15,20)')
         .selectAll('.edge')
@@ -1323,8 +1397,16 @@ function draw_flow() {
             return 'edge edge-' + i;
         })
         .attr('d', areaGenerator)
-        .attr('fill', 'blue')
-        .style('opacity', 0.15)
+        // .style('stroke-width', function (d) {
+        //     return 1;
+        // })
+        // .style('stroke', (d, i) => {
+        //     return 'url(#grad-' + i + ')';
+        // })
+        .attr('fill', (d, i) => {
+            return 'url(#grad-' + i + ')';
+        })
+        .style('opacity', 0.3)
         .on('mouseover', function (d) {
             d3.select(this).classed('hovered', true);
             let temp = [];
@@ -1336,7 +1418,7 @@ function draw_flow() {
             //     data = d[0].values;
             // }
             paths.forEach(function (p, p_i) {
-                data.forEach(function (player_id) {
+                selected_path_players.filter(x => data.indexOf(x) > -1).forEach(function (player_id) {
                     if (p[0].values.indexOf(player_id) > -1) {
                         if (temp.indexOf(p.id) < 0)
                             temp.push(p.id)
@@ -2119,8 +2201,8 @@ function draw_detail_projected(y_i) {
         .attr('fill', function (d) {
             let attr = d3.select(this.parentNode).datum();
             if (d['dom_by'] == 0)
-                return 'skyblue';
-            else return 'pink';
+                return SKYLINE_COLOR;
+            else return NON_SKYLINE_COLOR;
             // return colorscale(skyline_columns.indexOf(attr))
         })
         .attr('width', function (d, i, j) {
