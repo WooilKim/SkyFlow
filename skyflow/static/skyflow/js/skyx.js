@@ -42,6 +42,7 @@ let tsne_worker;
 let timeline_columns = [];
 let selected_bars = [];
 let selected_paths = [];
+let filter_strict_columns = [];
 let title_div_height = 30;
 let tsnexrange = [0, 100];
 let tsneyrange = [0, 100];
@@ -57,7 +58,14 @@ let list_svg;
 let players = [];
 let players_filter_dic = {};
 let final_filtered_players = [];
-
+let skyline_color_scale = d3.scaleLinear()
+        .domain([0, 1])
+        .range([d3.rgb('#4A6FE3'), d3.rgb('#DADEEE')])
+        .interpolate(d3.interpolateRgb),
+    nonskyline_color_scale = d3.scaleLinear()
+        .domain([0, 1])
+        .range([d3.rgb('#D33F6A'), d3.rgb('#F1D8DD')])
+        .interpolate(d3.interpolateRgb);
 let zoom = d3.zoom()
     .on("zoom", zoomed);
 
@@ -680,13 +688,14 @@ function draw_project(year, data) {
     new_points.append('g')
         .attr('class', 'detail');
 
+
+    new_points.append('g')
+        .attr('class', 'pie');
+
     new_points.append('circle')
         .attr('class', function (d) {
             return 'circlecenter ' + 'cc-' + d['id'];
         });
-
-    new_points.append('g')
-        .attr('class', 'pie');
 
     new_points
         .merge(project_points)
@@ -714,20 +723,35 @@ function project(draw_data) {
 
     // let detail_info = project_points.append('g')
     //     .attr('class', 'detail');
-
+    let innerR = 4;
     let circles = project_points.select('circle')
         .attr('class', function (d) {
             return 'circlecenter ' + 'cc-' + d['id'];
         })
-        .attr('fill', 'white')
+        .attr('fill', function (d, i) {
+            let tmp = d3.max(yearly_dom[y_i].map(x => x['dom'].length))
+            let tmp2 = d3.max(yearly_dom[y_i].filter(x => x['dom_by'].length > 0).map(x => x['dom'].length))
+            if (yearly_dom[y_i][i]['dom_by'].length === 0) {
+                // skyline
+                return skyline_color_scale(yearly_dom[y_i][i]['dom'].length / tmp)
+            } else {
+                //non skyline
+                return nonskyline_color_scale(yearly_dom[y_i][i]['dom'].length / tmp2)
+            }
+            // console.log(i, yearly_dom[y_i][i]);
+            // return radius_scale(yearly_dom[y_i][i]['dom'].length / tmp);
+        })
         // .attr('stroke', 'white')
         // .attr('stroke-width', 1)
+        .style('stroke', 'white')
+        .style('stroke-width', '1px')
         .attr('r', function (d, i) {
             // console.log('radius', year, y_i, yearly_dom[y_i]);
-            let tmp = d3.max(yearly_dom[y_i].map(x => x['dom'].length))
+            // let tmp = d3.max(yearly_dom[y_i].map(x => x['dom'].length))
             // console.log(i, yearly_dom[y_i][i]);
-            return radius_scale(yearly_dom[y_i][i]['dom'].length / tmp);
+            // return radius_scale(yearly_dom[y_i][i]['dom'].length / tmp);
             // return 3;
+            return innerR;
         });
 
     let pie = d3.pie().sort(null)
@@ -736,8 +760,8 @@ function project(draw_data) {
         });
 
     project_points
-        .style('stroke', 'silver')
-        .style('stroke-width', 0.2);
+        .style('stroke', 'white')
+        .style('stroke-width', 1);
     project_points
         .on('mouseover', function (d) {
             project_points_mouseover(d['PlayerID'], d['Player']);
@@ -770,6 +794,7 @@ function project(draw_data) {
     let new_pie_charts = pie_charts.enter()
         .append("path");
 
+
     new_pie_charts
         .merge(pie_charts)
         .attr("fill", function (d, i) {
@@ -778,9 +803,9 @@ function project(draw_data) {
         .attr("d", function (d, i) {
             let arc = d3.arc()
                 .outerRadius(function (d) {
-                    return radius_scale(d.inner) + d3.scaleLinear().domain(column_extents[columns[skyline_columns[i]]]).range([3, 30])(parseFloat(d.data));
+                    return innerR + d3.scaleLinear().domain(column_extents[columns[skyline_columns[i]]]).range([3, 30])(parseFloat(d.data));
                 })
-                .innerRadius(radius_scale(d.inner));
+                .innerRadius(innerR);
             return arc(d);
         });
 }
@@ -861,28 +886,42 @@ function project_points_mouseout(player_id) {
 function redraw_projected_selected_players() {
     let y_i = year_data.indexOf(current_year);
     // d3.selectAll('.point').classed('selected', false);
-    project_svg.select('g').selectAll('.point').select('.pie').selectAll('path')
-        .style('stroke-width', '0px');
-    d3.selectAll('.point').selectAll('circle')
-        .attr('fill', 'white');
+    // project_svg.select('g').selectAll('.point').select('.pie').selectAll('path')
+    //     .style('stroke-width', '0px');
+    d3.selectAll('.point').selectAll('.circle')
+        .style('stroke', 'white');
+    let yd_dom = [];
+    let yd_domby = [];
+    if (selected_players.length > 0) {
+        yd_dom = yearly_dom[y_i].map(x => x.id);
+        yd_domby = yearly_dom[y_i].map(x => x.id);
+    }
+    // let yd = yearly_dom[y_i].filter(x => x.id == p);
 
     selected_players.forEach(function (p, p_i) {
         // project_svg.select('g').select('.point-' + p).classed('selected', true);
         project_svg.select('g').select('.point-' + p).select('.pie').selectAll('path')
-            .style('stroke-width', '2px')
+        // .style('stroke-width', '2px')
             .style('stroke', selected_player_colorscale(p_i));
-        let yd = yearly_dom[y_i].filter(x => x.id == p);
-        if (yd.length > 0) {
-            yd[0].dom.forEach(function (d) {
-                d3.select('.pointid-' + d.id).select('circle')
-                    .attr('fill', 'red')
-            });
-            yd[0].dom_by.forEach(function (d) {
-                d3.select('.pointid-' + d.id).select('circle')
-                    .attr('fill', 'blue')
-            });
-        }
+        let selected_p_yd = yearly_dom[y_i].filter(x => x.id == p)[0].dom.map(x => x.PlayerID)
+        let selected_p_ydby = yearly_dom[y_i].filter(x => x.id == p)[0].dom_by.map(x => x.PlayerID)
+        console.log(selected_p_yd);
+        yd_dom = yd_dom.filter(x => selected_p_yd.indexOf(x) > -1)
+        yd_domby = yd_domby.filter(x => selected_p_ydby.indexOf(x) > -1)
+
     });
+
+    console.log(yd_dom, yd_domby);
+    yd_dom.forEach(function (d) {
+        d3.select('.point-' + d).select('circle')
+            .style('stroke', NON_SKYLINE_COLOR)
+    });
+
+    yd_domby.forEach(function (d) {
+        d3.select('.point-' + d).select('circle')
+            .style('stroke', SKYLINE_COLOR)
+    });
+
 }
 
 function project_points_click(d) {
@@ -1299,10 +1338,7 @@ function draw_flow() {
             // let fed = yearly_filtered[year_data.indexOf(current_year)].filter(x => sky_filtered[i][find[0]].indexOf(x.nameid) > -1).map(x => x[0])
             d3.selectAll('path.hovered')
                 .classed('hovered', false)
-            d3.selectAll('.point')
-                .select('.pie')
-                .selectAll('path')
-                .attr('stroke-width', '0.2px');
+
             flow_svg.select('g.flowdetail')
                 .select('text').remove();
             // console.log(d, i);
@@ -1899,17 +1935,21 @@ function filter_set() {
                         filter_ranges[column] = d3.event.selection.map(x.invert)
 
                         //filter players
+
+
+                        // if not
                         selected_filter_players[column] = Array.from(new Set(original_dataset.filter(p => p[column] >= filter_ranges[column][0] && p[column] <= filter_ranges[column][1]).map(p => p['PlayerID'])));
+
+                        if (filter_strict_columns.indexOf(column) > -1) {
+                            let removelist1 = Array.from(new Set(original_dataset.filter(p => p[column] < filter_ranges[column][0]).map(p => p['PlayerID'])));
+                            let removelist2 = Array.from(new Set(original_dataset.filter(p => p[column] > filter_ranges[column][1]).map(p => p['PlayerID'])));
+                            selected_filter_players[column] = selected_filter_players[column].filter(x => removelist1.indexOf(x) < 0 && removelist2.indexOf(x) < 0);
+                        }
                         players.forEach(function (d, i) {
                             if (selected_filter_players[column].indexOf(d) > -1) {
                                 players[i][column] = true;
                             }
                         });
-                        // get_final_filtered_players();
-                        // selected_filter_players[column].forEach(function (p) {
-                        //     players_filter_dic[p][column] = true;
-                        // })
-                        // console.log(selected_filter_players)
                         d3.select('.filter-num-' + filter_columns.indexOf(column))
                             .text(selected_filter_players[column].length);
 
@@ -1925,7 +1965,43 @@ function filter_set() {
                     .attr('x', padding_left - 10)
                     .attr('y', 20)
                     .style('font-size', 20);
+                let strictbox = filter_g.append('g')
+                    .attr('transform', 'translate(100, 10)')
+                strictbox.append('rect')
+                    .attr('width', 50)
+                    .attr('height', 10)
+                    .attr('stroke', 'black')
+                    .style('fill', 'transparent')
+                strictbox.on('click', function () {
+                    if (filter_strict_columns.indexOf(column) < 0) {
+                        filter_strict_columns.push(column)
+                    } else {
+                        let idx = filter_strict_columns.indexOf(column)
+                        filter_strict_columns.splice(idx, 1)
+                    }
 
+
+                    selected_filter_players[column] = Array.from(new Set(original_dataset.filter(p => p[column] >= filter_ranges[column][0] && p[column] <= filter_ranges[column][1]).map(p => p['PlayerID'])));
+                    if (filter_strict_columns.indexOf(column) > -1) {
+                        let removelist1 = Array.from(new Set(original_dataset.filter(p => p[column] < filter_ranges[column][0]).map(p => p['PlayerID'])));
+                        let removelist2 = Array.from(new Set(original_dataset.filter(p => p[column] > filter_ranges[column][1]).map(p => p['PlayerID'])));
+                        selected_filter_players[column] = selected_filter_players[column].filter(x => removelist1.indexOf(x) < 0 && removelist2.indexOf(x) < 0);
+                    }
+
+
+                    players.forEach(function (d, i) {
+                        if (selected_filter_players[column].indexOf(d) > -1) {
+                            players[i][column] = true;
+                        }
+                    });
+                    d3.select('.filter-num-' + filter_columns.indexOf(column))
+                        .text(selected_filter_players[column].length);
+
+                    update_filter_mark(column);
+
+                })
+                strictbox.append('text')
+                    .text('strict')
                 filter_g.append('text')
                     .attr('class', function (d) {
                         return 'filter-num-' + filter_columns.indexOf(d);
