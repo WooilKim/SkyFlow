@@ -97,7 +97,7 @@ let timeline_each_height = 70,
 let progress_bar;
 
 let flow_label_width = 30;
-let flow_detail_height = 40;
+let flow_detail_height = 20;
 let filter_ranges = {};
 default_setting();
 
@@ -1110,12 +1110,13 @@ function draw_flow() {
         .enter()
         .append('g')
         .attr('transform', function (d, i) {
-            return 'translate(' + (i * gap_between_bars) + ',15)';
+            return 'translate(' + (13 + i * gap_between_bars) + ',15)';
         });
     yl.append('text')
         .text(function (d) {
             return d;
         })
+        .style('text-anchor', 'middle')
     // .style('baseline-alignment', 'middle')
     // .style('text-anchor', 'middle')
     // .attr('y', (project_div.clientWidth - title_div_height) / keys.length/2);
@@ -1521,21 +1522,21 @@ function update_flow_detail(data) {
     d3.select("div#flow_detail")
         .select('svg').selectAll('text').remove()
 
-    d3.select("div#flow_detail")
-        .select('svg')
-        .selectAll('rect')
-        .data([0, 1, 2])
-        .enter()
-        .append('rect')
-        .attr('x', function (d, i) {
-            return i * flow_div_width / 3
-        })
-        .attr('y', 10)
-        .attr('width', flow_div_width / 3 - 10)
-        .attr('height', 20)
-        .attr('stroke', 'silver')
-        .style('opacity', 0.5)
-        .attr('fill', 'silver');
+    // d3.select("div#flow_detail")
+    //     .select('svg')
+    //     .selectAll('rect')
+    //     .data([0, 1, 2])
+    //     .enter()
+    //     .append('rect')
+    //     .attr('x', function (d, i) {
+    //         return i * flow_div_width / 3
+    //     })
+    //     .attr('y', 19)
+    //     .attr('width', flow_div_width / 3 - 10)
+    //     .attr('height', 20)
+    //     .attr('stroke', 'silver')
+    //     .style('opacity', 0.5)
+    //     .attr('fill', 'silver');
 
     d3.select("div#flow_detail")
         .select('svg')
@@ -1547,7 +1548,7 @@ function update_flow_detail(data) {
         .attr('x', function (d, i) {
             return flow_div_width / 3 / 2 + flow_div_width / 3 * i
         })
-        .attr('y', 25)
+        .attr('y', 14)
         .style('basement-alignment', 'middle')
         .style('font-size', '15px')
         .style('text-anchor', 'middle')
