@@ -11,21 +11,32 @@ const column_scale = d3.scaleOrdinal(["#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78"
 let arr = d3.range(0, 40).map(d => column_scale(d))
 let colorscale = d3.scaleOrdinal(d3.schemeCategory10);
 let glyphdata = [];
-let columns = [30, 20, 50, 70, 10, 40, 90, 100, 15, 25, 10, 21];
+let columns = [30, 20, 50, 70, 10, 40, 90, 80, 15, 25, 10, 21];
 let outerscale = d3.scaleLinear().domain([0, 100]).range([0.5, 150]);
-let radius = 10;
+let radius = 12;
+
+let colormax = 20;
+let cs1 = d3.scaleLinear()
+    .domain([0, colormax / 2 - 1])
+    .range([d3.rgb('#4A6FE3'), d3.rgb('#DADEEE')])
+    .interpolate(d3.interpolateRgb);
+
+let cs2 = d3.scaleLinear()
+    .domain([colormax / 2, colormax - 1])
+    .range([d3.rgb('#F1D8DD'), d3.rgb('#D33F6A')])
+    .interpolate(d3.interpolateRgb);
 glyphdata.push({'dom': radius});
 
-glyph.selectAll('rect')
-    .data(arr)
-    .enter()
-    .append('rect')
-    .attr('width', '5px')
-    .attr('height', '5px')
-    .attr('x', function (d, i) {
-        return 500 + i * 5;
-    })
-    .attr('fill', (d, i) => arr[i]);
+// glyph.selectAll('rect')
+//     .data(arr)
+//     .enter()
+//     .append('rect')
+//     .attr('width', '5px')
+//     .attr('height', '5px')
+//     .attr('x', function (d, i) {
+//         return 500 + i * 5;
+//     })
+//     .attr('fill', (d, i) => arr[i]);
 
 let pie = d3.pie().sort(null)
     .value(function () {
@@ -54,28 +65,35 @@ glyph.selectAll("path")
             .innerRadius(radius);
         return arc(d);
     });
-glyph.selectAll('circle')
+
+
+glyph.selectAll('circle.round')
     .data(glyphdata)
     .enter()
     .append('circle')
+    .attr('class', 'round')
     .attr('r', function (d) {
-        return radius;
+        return radius - 1;
     })
     .attr('fill', SKYLINE_COLOR)
-    .style('opacity', 0.9)
+    .style('opacity', 0.9);
+
+glyph.selectAll('circle.center')
+    .data(glyphdata)
+    .enter()
+    .append('circle')
+    .attr('class', 'center')
+    .attr('r', function (d) {
+        return radius - 6;
+    })
+    .attr('fill', cs1(3))
+    .style('opacity', 1)
     .attr('stroke', 'white')
     .attr('stroke-width', '2px');
 
-let colormax = 20;
-let cs1 = d3.scaleLinear()
-    .domain([0, colormax / 2 - 1])
-    .range([d3.rgb('#4A6FE3'), d3.rgb('#DADEEE')])
-    .interpolate(d3.interpolateRgb);
+// .attr('stroke', )
+// .attr('stroke-width', '2px');
 
-let cs2 = d3.scaleLinear()
-    .domain([colormax / 2, colormax - 1])
-    .range([d3.rgb('#F1D8DD'), d3.rgb('#D33F6A')])
-    .interpolate(d3.interpolateRgb);
 
 let rectsize = 15;
 
@@ -149,45 +167,5 @@ colorbar_svg.select('g')
     .append('g')
     .attr('transform', 'translate(99.5,50)')
     .call(axis);
-
-let sankey_svg = d3.select('body').append('svg')
-    .attr('width', '500px')
-    .attr('height', '500px');
-
-sankey_svg.append('g');
-let keys = ['skyline', 'non-skyline', 'bench'];
-let stack = d3.stack().keys(keys);
-// let layers = stack(sky_filtered_length);
-
-let sankey_data = [
-    {'skyline': 30, 'non-skyline': 20, 'bench': 10},
-    {'skyline': 30, 'non-skyline': 20, 'bench': 10},
-    {'skyline': 30, 'non-skyline': 20, 'bench': 10}
-];
-var lineGenerator = d3.line()
-    .curve(d3.curveCardinal);
-
-var points = [
-    [0, 80],
-    [100, 100],
-    // [200, 30],
-    // [300, 50],
-    // [400, 40],
-    // [500, 80]
-];
-
-var pathData = lineGenerator(points);
-
-d3.select('path')
-    .attr('d', pathData)
-    .attr('stroke', 'black');
-
-
-// Also draw points for reference
-
-let sankey_paths = [
-    {},
-    {}
-];
 let z = d3.scaleOrdinal()
     .range([SKYLINE_COLOR, NON_SKYLINE_COLOR, 'yellow']);

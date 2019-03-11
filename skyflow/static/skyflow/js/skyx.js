@@ -694,8 +694,13 @@ function draw_project(year, data) {
 
     new_points.append('circle')
         .attr('class', function (d) {
+            return 'round';
+        });
+    new_points.append('circle')
+        .attr('class', function (d) {
             return 'circlecenter ' + 'cc-' + d['id'];
         });
+
 
     new_points
         .merge(project_points)
@@ -723,8 +728,8 @@ function project(draw_data) {
 
     // let detail_info = project_points.append('g')
     //     .attr('class', 'detail');
-    let innerR = 4;
-    let circles = project_points.select('circle')
+    let innerR = 6;
+    let circles = project_points.select('.circlecenter')
         .attr('class', function (d) {
             return 'circlecenter ' + 'cc-' + d['id'];
         })
@@ -751,7 +756,29 @@ function project(draw_data) {
             // console.log(i, yearly_dom[y_i][i]);
             // return radius_scale(yearly_dom[y_i][i]['dom'].length / tmp);
             // return 3;
-            return innerR;
+            return innerR - 3;
+        });
+
+    project_points.select('.round')
+        .attr('class', function (d) {
+            return 'circlecenter ' + 'cc-' + d['id'];
+        })
+        .attr('fill', function (d, i) {
+            return 'white';
+            // console.log(i, yearly_dom[y_i][i]);
+            // return radius_scale(yearly_dom[y_i][i]['dom'].length / tmp);
+        })
+        // .attr('stroke', 'white')
+        // .attr('stroke-width', 1)
+        // .style('stroke', 'white')
+        // .style('stroke-width', '1px')
+        .attr('r', function (d, i) {
+            // console.log('radius', year, y_i, yearly_dom[y_i]);
+            // let tmp = d3.max(yearly_dom[y_i].map(x => x['dom'].length))
+            // console.log(i, yearly_dom[y_i][i]);
+            // return radius_scale(yearly_dom[y_i][i]['dom'].length / tmp);
+            // return 3;
+            return innerR - 1;
         });
 
     let pie = d3.pie().sort(null)
@@ -886,9 +913,9 @@ function project_points_mouseout(player_id) {
 function redraw_projected_selected_players() {
     let y_i = year_data.indexOf(current_year);
     // d3.selectAll('.point').classed('selected', false);
-    // project_svg.select('g').selectAll('.point').select('.pie').selectAll('path')
-    //     .style('stroke-width', '0px');
-    d3.selectAll('.point').selectAll('.circle')
+    project_svg.select('g').selectAll('.point').select('.pie').selectAll('path')
+        .style('stroke', 'white');
+    project_svg.select('g').selectAll('.point').select('.circle')
         .style('stroke', 'white');
     let yd_dom = [];
     let yd_domby = [];
@@ -1250,11 +1277,12 @@ function draw_flow() {
         .attr('fill', function () {
             return z(d3.select(this.parentNode).datum().key);
         })
+        .style('opacity', 0.5)
         .attr("x", function (d, i) {
             // if (selected_players.length == 0)
             return (i * gap_between_bars);
         })
-        .attr('stroke', 'black')
+        .attr('stroke', 'white')
         .attr("y", function (d, i) {
             // console.log(d, i, d3.select(this.parentNode).datum());
             // if (d3.select(this.parentNode).datum().key === 'new')
@@ -1296,7 +1324,8 @@ function draw_flow() {
         })
         .on('mouseover', function (d, i) {
             d3.select(this)
-                .attr('stroke', 'white');
+                .attr('stroke', 'black')
+                .style('opacity', 0.7);
 
             let parentClass = d3.select(this.parentNode).attr('class');
             let opt = parentClass.slice(12,);
@@ -1329,7 +1358,8 @@ function draw_flow() {
         })
         .on('mouseout', function (d) {
             d3.select(this)
-                .attr('stroke', 'black');
+                .attr('stroke', 'white')
+                .style('opacity', 0.5);
 
             // let val = d[1] - d[0];
             // let keys = ['skyline', 'non-skyline', 'new', 'out'];
