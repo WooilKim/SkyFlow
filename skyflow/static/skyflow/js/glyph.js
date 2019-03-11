@@ -150,44 +150,265 @@ colorbar_svg.select('g')
     .attr('transform', 'translate(99.5,50)')
     .call(axis);
 
-let sankey_svg = d3.select('body').append('svg')
+
+let scatter_svg = d3.select('body').append('svg')
     .attr('width', '500px')
     .attr('height', '500px');
 
-sankey_svg.append('g');
-let keys = ['skyline', 'non-skyline', 'bench'];
-let stack = d3.stack().keys(keys);
-// let layers = stack(sky_filtered_length);
+// scatter_svg.append('g')
+//     .attr('transform', 'translate(30,10)');
 
-let sankey_data = [
-    {'skyline': 30, 'non-skyline': 20, 'bench': 10},
-    {'skyline': 30, 'non-skyline': 20, 'bench': 10},
-    {'skyline': 30, 'non-skyline': 20, 'bench': 10}
-];
-var lineGenerator = d3.line()
-    .curve(d3.curveCardinal);
+let scatter_data = [['A', 2, 3], ['B', 5, 8], ['C', 4, 2], ['D', 1, 5], ['E', 8, 7]];
+let scatter_data2 = [['A', 3, 5], ['B', 3, 6], ['C', 4, 2], ['D', 1, 5], ['E', 8, 7]];
+let scatter_data3 = [['A', 6, 7], ['B', 5, 4], ['C', 4, 2], ['D', 1, 5], ['E', 8, 7]];
+let skyline_data = [[0, 8], [5, 8], [5, 7], [8, 7], [8, 0]];
+let skyline_points = [['B', 5, 8], ['E', 8, 7]]
+let skyline_data2 = [[0, 6], [6, 6], [6, 4], [7, 4], [7, 0]];
+let skyline_data3 = [[0, 7], [5, 7], [5, 7], [8, 7], [8, 0]];
 
-var points = [
-    [0, 80],
-    [100, 100],
-    // [200, 30],
-    // [300, 50],
-    // [400, 40],
-    // [500, 80]
-];
+const x = d3.scaleLinear()
+    .range([0, 300])
+    .domain([0, 10])
+    .nice();
 
-var pathData = lineGenerator(points);
-
-d3.select('path')
-    .attr('d', pathData)
-    .attr('stroke', 'black');
+const y = d3.scaleLinear()
+    .range([300, 0])
+    .domain([0, 10]);
 
 
-// Also draw points for reference
+const xAxis = d3.axisBottom(x).ticks(12),
+    yAxis = d3.axisLeft(y).ticks(12);
 
-let sankey_paths = [
-    {},
-    {}
-];
-let z = d3.scaleOrdinal()
-    .range([SKYLINE_COLOR, NON_SKYLINE_COLOR, 'yellow']);
+const xAxis2 = d3.axisBottom(x).ticks(12),
+    yAxis2 = d3.axisLeft(y).ticks(12);
+
+
+scatter_svg.append("g")
+    .attr("class", "grid grid-x")
+    .attr("transform", "translate(30," + 310 + ")")
+    .call(xAxis2
+        .tickSize(-300)
+        .tickFormat(''));
+
+scatter_svg.append("g")
+    .attr("class", "grid grid-y")
+    .attr("transform", "translate(30," + 10 + ")")
+    // .attr('transform', 'skewY(-30)')
+    .call(yAxis2
+        .tickSize(-300)
+        .tickFormat(''));
+
+scatter_svg.selectAll('.grid')
+    .selectAll('line')
+    .attr('stroke', 'lightgray');
+
+scatter_svg.append('g')
+    .attr('transform', 'translate(30,310)')
+    .call(xAxis)
+scatter_svg.append('g')
+    .attr('transform', 'translate(30,10)')
+    .call(yAxis)
+scatter_svg.append('g')
+    .attr('transform', 'translate(30,10)')
+    .selectAll('rect')
+    .data(skyline_points)
+    .enter()
+    .append('rect')
+    .attr('x', d => x(0))
+    .attr('y', d => y(d[2]))
+    .attr('fill', d => d3.schemeCategory10[['A', 'B', 'C', 'D', 'E'].indexOf(d[0])])
+    .attr('width', d => x(d[1]))
+    .attr('height', d => y(10 - d[2]))
+    .style('opacity', 0.3)
+
+let skyline_gen = d3.line()
+    .x(d => x(d[0]))
+    .y(d => y(d[1]))
+scatter_svg.append('g')
+    .attr('transform', 'translate(30,10)')
+    .append('path')
+    .attr('d', skyline_gen(skyline_data))
+    .attr('fill', 'transparent')
+    .attr('stroke', '#4A6FE3')
+    .style('stroke-width', 3)
+scatter_svg.append('g')
+    .attr('transform', 'translate(30,10)')
+    // .attr('transform', 'skewY(-30)')
+    .selectAll('.dot')
+    .data(scatter_data)
+    .enter()
+    .append('circle')
+    .attr('class', '.dot')
+    .attr('r', 5)
+    .attr('stroke', (d, i) => {
+        return d3.schemeCategory10[i];
+    })
+    .attr('fill', (d, i) => {
+        return 'white'
+        // return d3.schemeCategory10[i];
+    })
+    .attr('stroke-width', 3)
+    .attr('cx', d => x(d[1]))
+    .attr('cy', d => y(d[2]))
+
+scatter_svg.append('g')
+    .attr('transform', 'translate(30,10)')
+    // .attr('transform', 'skewY(-30)')
+    .selectAll('.dot')
+    .data(scatter_data)
+    .enter()
+    .append('text')
+    .attr('class', '.label')
+    .text(d => d[0])
+    .attr('x', d => x(d[1]) + 5)
+    .attr('y', d => y(d[2]) - 5)
+
+
+let scatter_svg2 = d3.select('body').append('svg')
+    .attr('width', '1000px')
+    .attr('height', '1000px');
+
+let s1 = scatter_svg2.append("g")
+    .attr('class', 's1')
+    .attr('transform', 'translate(200,200), skewY(0)')
+let s2 = scatter_svg2.append("g")
+    .attr('class', 's2')
+    .attr('transform', 'translate(200,200), skewY(0)')
+// let s3 = scatter_svg2.append("g")
+//     .attr('class', 's3')
+//     .attr('transform', 'translate(240,240), skewY(0)')
+s1.append("g")
+    .attr("class", "grid grid-x")
+    .attr("transform", "translate(30," + 310 + ")")
+    .call(xAxis2
+        .tickSize(-300)
+        .tickFormat(''));
+
+s1.append("g")
+    .attr("class", "grid grid-y")
+    .attr("transform", "translate(30," + 10 + ")")
+    // .attr('transform', 'skewY(-30)')
+    .call(yAxis2
+        .tickSize(-300)
+        .tickFormat(''));
+
+s1.selectAll('.grid')
+    .selectAll('line')
+    .attr('stroke', 'lightgray');
+
+s1.append('g')
+    .attr('transform', 'translate(30,310)')
+    .call(xAxis.tickFormat(''))
+    .style('opacity', 0.6)
+s1.append('g')
+    .attr('transform', 'translate(30,10)')
+    .call(yAxis.tickFormat(''))
+    .style('opacity', 0.6)
+
+
+s1.append('g')
+    .attr('transform', 'translate(30,10)')
+    .append('path')
+    .attr('d', skyline_gen(skyline_data))
+    .attr('fill', 'transparent')
+    .attr('stroke', 'skyblue')
+    .style('stroke-width', 2)
+    .style('opacity', 0.6)
+s1.append('g')
+    .attr('transform', 'translate(30,10)')
+    // .attr('transform', 'skewY(-30)')
+    .selectAll('.dot')
+    .data(scatter_data)
+    .enter()
+    .append('circle')
+    .attr('class', '.dot')
+    .attr('r', 5)
+    .attr('stroke', (d, i) => {
+        return d3.schemeCategory10[i];
+    })
+    .attr('fill', (d, i) => {
+        return 'white'
+        // return d3.schemeCategory10[i];
+    })
+    .attr('cx', d => x(d[1]))
+    .attr('cy', d => y(d[2]))
+    .style('opacity', 0.6)
+
+// s2.append("g")
+//     .attr("class", "grid grid-x")
+//     .attr("transform", "translate(30," + 310 + ")")
+//     .call(xAxis2
+//         .tickSize(-300)
+//         .tickFormat(''));
+//
+// s2.append("g")
+//     .attr("class", "grid grid-y")
+//     .attr("transform", "translate(30," + 10 + ")")
+//     // .attr('transform', 'skewY(-30)')
+//     .call(yAxis2
+//         .tickSize(-300)
+//         .tickFormat(''));
+//
+// s2.selectAll('.grid')
+//     .selectAll('line')
+//     .attr('stroke', 'lightgray');
+
+s1.append('g')
+    .attr('transform', 'translate(30,10)')
+    // .attr('transform', 'skewY(-30)')
+    .selectAll('.dot')
+    .data(scatter_data)
+    .enter()
+    .append('text')
+    .attr('class', '.label')
+    .text(d => d[0])
+    .attr('x', d => x(d[1]) + 5)
+    .attr('y', d => y(d[2]) - 5)
+    .style('opacity', 0.6)
+
+s2.append('g')
+    .attr('transform', 'translate(30,310)')
+    .call(xAxis.tickFormat(''))
+    .style('opacity', 0.9)
+s2.append('g')
+    .attr('transform', 'translate(30,10)')
+    .call(yAxis.tickFormat(''))
+    .style('opacity', 0.9)
+
+
+s2.append('g')
+    .attr('transform', 'translate(30,10)')
+    .append('path')
+    .attr('d', skyline_gen(skyline_data2))
+    .attr('fill', 'transparent')
+    .attr('stroke', 'skyblue')
+    .style('stroke-width', 2)
+    .style('opacity', 0.9)
+s2.append('g')
+    .attr('transform', 'translate(30,10)')
+    // .attr('transform', 'skewY(-30)')
+    .selectAll('.dot')
+    .data(scatter_data2)
+    .enter()
+    .append('circle')
+    .attr('class', '.dot')
+    .attr('r', 5)
+    .attr('fill', (d, i) => {
+        return d3.schemeCategory10[i];
+    })
+    .attr('cx', d => x(d[1]))
+    .attr('cy', d => y(d[2]))
+    .style('opacity', 0.9)
+
+s2.append('g')
+    .attr('transform', 'translate(30,10)')
+    // .attr('transform', 'skewY(-30)')
+    .selectAll('.dot')
+    .data(scatter_data2)
+    .enter()
+    .append('text')
+    .attr('class', '.label')
+    .text(d => d[0] + "'")
+    .attr('x', d => x(d[1]) + 5)
+    .attr('y', d => y(d[2]) - 5)
+    .style('opacity', 0.9)
