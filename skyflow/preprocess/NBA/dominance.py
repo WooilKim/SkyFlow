@@ -2,6 +2,7 @@ import numpy as np
 import csv, math, json, pprint
 from sklearn.manifold import TSNE
 import pandas as pd
+import string
 from operator import itemgetter
 
 
@@ -324,6 +325,115 @@ def tsne(file, keys, output):
     with open(output, 'w') as f:
         f.write(json.dumps({'data': rows}))
         f.flush()
+
+
+def test():
+    df = pd.read_csv('../../static/skyflow/data/processed/NBA.csv')
+    df = df.fillna(0)
+    df.to_csv('../../static/skyflow/data/processed/NBA_fillna.csv')
+    print(df['3P%'].value_counts(dropna=False))
+
+
+def skyline_all():
+    columns = ['PTS', 'AST', 'STL', 'BLK', 'TRB', 'ORB', 'DRB', '3P%', '3P', 'FG%', 'FG', 'G']
+    rows = list()
+    with open('../../static/skyflow/data/processed/NBA_fillna.csv', 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(row)
+
+    # column 조합 nC2 -> nCn
+    # tsne location
+    # skyline relation
+    # abcde.json
+    # json : id, nameid, year, x, y, dom, dom_by
+    idxs = list(range(0, 12))
+
+    r = [x for x in powerset(idxs)]
+    # r = [[0, 1, 2, 3, 4, 5, 6, 7]]
+    r.sort()
+    print(r)
+    for l in r:
+        if len(l) < 2:
+            continue
+        print(l)
+        # list(map(chr, range(97, 123)))  # or list(map(chr, range(ord('a'), ord('z')+1)))
+        # [chr(i) for i in range(ord('a'), ord('z') + 1)]
+        filename = ''.join(chr(ord('a') + x) for x in l)
+        print(filename)
+
+        selected_columns = [columns[idx] for idx in l]
+        # full_data = []
+        for year in range(1978, 2016):
+            # output = list()
+            adj_matrix = list()
+
+            year_list = list(filter(lambda x: int(x['Year']) == year, rows))
+
+            year_values = list([float(x[c]) if c.strip() != '' else 0 for c in selected_columns] for x in year_list)
+
+            # print(year, year_values)
+            x = np.array(year_values)
+            x_embedded = TSNE(n_components=2).fit_transform(x)
+            # for i, row in enumerate(x_embedded):
+            #     print(float(row[0]), float(row[1]))
+            for i, p in enumerate(year_values):
+                adj_matrix.append(list())
+                adj_matrix[i].append(float(x_embedded[i][0]))
+                adj_matrix[i].append(float(x_embedded[i][1]))
+                dom = list()
+                dom_by = list()
+                # output.append(dict())
+                # output[i]['id'] = year_list[i]['id']
+                # output[i]['Year'] = year_list[i]['Year']
+                # output[i]['PlayerID'] = year_list[i]['PlayerID']
+                for idx, v in enumerate(year_values):
+                    # print(p, v)
+                    arr = [p[idx] - v[idx] for idx in range(len(l))]
+                    equal_or_greater = [True if x >= 0 else False for x in arr]
+                    greater = [True if x > 0 else False for x in arr]
+                    arr2 = [v[idx] - p[idx] for idx in range(len(l))]
+                    equal_or_greater2 = [True if x >= 0 else False for x in arr2]
+                    greater2 = [True if x > 0 else False for x in arr2]
+                    if all(equal_or_greater) and any(greater):
+                        # dom.append(year_list[idx]['PlayerID'])
+                        adj_matrix[i].append(1)
+                    elif all(equal_or_greater2) and any(greater2):
+                        # dom_by.append(year_list[idx]['PlayerID'])
+                        adj_matrix[i].append(-1)
+                    else:
+                        adj_matrix[i].append(0)
+
+                # print(dom_by)
+                # output[i]['dom'] = dom
+                # output[i]['dom_by'] = dom_by
+                # output[i]['x'] = float(x_embedded[i][0])
+                # output[i]['y'] = float(x_embedded[i][1])
+            # full_data.extend(output)
+
+            with open('./skylines/' + str(year) + '_' + filename + '.csv', 'w') as f:
+                writer = csv.writer(f)
+                writer.writerows(adj_matrix)
+
+            # with open('./skylines/' + year + '_' + filename + '.json', 'w') as f:
+            #     f.write(json.dumps(full_data, indent=4))
+            #     f.flush()
+            # except ValueError as e:
+            #     print(selected_columns)
+            #     print(e)
+
+
+def powerset(seq):
+    """
+    Returns all the subsets of this set. This is a generator.
+    """
+    if len(seq) <= 1:
+        yield seq
+        yield []
+    else:
+        for item in powerset(seq[1:]):
+            yield [seq[0]] + item
+            yield item
 
 
 def yearly_tsne(file, output):
@@ -1072,7 +1182,6 @@ def baseball_redundant():
     columns.insert(2, 'salary')
     columns.insert(0, 'yearID')
 
-
     # shows how many nan values in each column?
     for c in dropped.columns:
         print(c, dropped[c].isna().sum())
@@ -1081,9 +1190,12 @@ def baseball_redundant():
     print(dropped)
     dropped.to_csv('../../static/skyflow/data/processed/baseball_redundant.csv', mode='w')
 
+
 def nba_setting():
     data = pd.read_csv('../../static/skyflow/data/original/NBA Season Data.csv')
     print(data)
+
+
 if __name__ == '__main__':
     # rows = read('../data/NBA_redundancy_erased.csv')
     # column_needed = ['Year', 'Player', 'Player ID', 'Tm', 'ORB%', 'DRB%', 'AST%', 'STL%', 'BLK%', 'Shot%']
@@ -1121,4 +1233,7 @@ if __name__ == '__main__':
     # get_domrelation()
     # selected_skyline([1, 4, 6, 7])
     # baseball_redundant()
-    nba_setting()
+    # nba_setting()
+    skyline_all()
+    # test()
+
