@@ -354,7 +354,7 @@ def skyline_all():
     r.sort()
     print(r)
     for l in r:
-        if len(l) < 2:
+        if len(l) != len(columns) - 3:
             continue
         print(l)
         # list(map(chr, range(97, 123)))  # or list(map(chr, range(ord('a'), ord('z')+1)))
@@ -1236,4 +1236,3 @@ if __name__ == '__main__':
     # nba_setting()
     skyline_all()
     # test()
-
