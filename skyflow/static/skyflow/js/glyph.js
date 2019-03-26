@@ -411,4 +411,218 @@ s2.append('g')
     .text(d => d[0] + "'")
     .attr('x', d => x(d[1]) + 5)
     .attr('y', d => y(d[2]) - 5)
-    .style('opacity', 0.9)
+    .style('opacity', 0.9);
+
+let detail_svg = d3.select('body').append('svg');
+detail_svg.append('g');
+let detail_data = [10, 11, 13, 16, 17, 19, 19, 20, 21, 22, 22, 24, 25, 27, 28, 30, 36, 40, 46, 50];
+console.log(detail_data.length);
+let detail_line = d3.line()
+
+detail_svg.selectAll('rect')
+    .data(detail_data)
+    .enter()
+    .append('rect')
+    .attr('x', (d, i) => i * 2)
+    .attr('y', function (d, i) {
+        if (i < 50)
+            return 100 - d;
+        else
+            return 0;
+    })
+    .attr('fill', 'blue')
+    .attr('width', 2)
+    .attr('height', function (d, i) {
+        if (i < 50)
+            return d;
+        else
+            return 100 - d;
+    });
+
+let detail_axis = d3.axisLeft(d3.scaleLinear().domain([100, 0]).range([0, 100])).tickValues([10, 50])
+detail_svg.append('g')
+    .attr('transform', 'translate(30,0)')
+    .call(detail_axis);
+
+let detail_selected = [['orange'], ['blue'], ['green']]
+detail_svg.selectAll('.selected')
+    .data(detail_selected)
+    .enter()
+    .append('rect')
+    .attr('x', (d, i) => i * 100 / 3)
+    .attr('y', 110)
+    .attr('width', 100 / 3)
+    .attr('height', 10)
+    .attr('fill', d => d);
+
+let flow_svg = d3.select('body').append('svg');
+let flow_data = [[10, 20, 5], [13, 18, 10], [11, 20, 7]];
+
+let rect_width = 10;
+
+// t1
+flow_svg.append('rect')
+    .attr('width', rect_width)
+    .attr('x', 0)
+    .attr('y', 0)
+    .attr('height', flow_data[0][0] * 2)
+    .attr('fill', SKYLINE_COLOR)
+
+flow_svg.append('rect')
+    .attr('width', rect_width)
+    .attr('x', 0)
+    .attr('y', 25)
+    .attr('height', flow_data[0][1] * 2)
+    .attr('fill', NON_SKYLINE_COLOR)
+
+flow_svg.append('rect')
+    .attr('width', rect_width)
+    .attr('x', 0)
+    .attr('y', 70)
+    .attr('height', flow_data[0][2] * 2)
+    .attr('fill', 'grey')
+
+// t2
+flow_svg.append('rect')
+    .attr('width', rect_width)
+    .attr('x', 50)
+    .attr('y', 0)
+    .attr('height', flow_data[1][0] * 2)
+    .attr('fill', SKYLINE_COLOR)
+
+flow_svg.append('rect')
+    .attr('width', rect_width)
+    .attr('x', 50)
+    .attr('y', 31)
+    .attr('height', flow_data[1][1] * 2)
+    .attr('fill', NON_SKYLINE_COLOR)
+
+flow_svg.append('rect')
+    .attr('width', rect_width)
+    .attr('x', 50)
+    .attr('y', 72)
+    .attr('height', flow_data[1][2] * 2)
+    .attr('fill', 'grey')
+
+
+// t3
+flow_svg.append('rect')
+    .attr('width', rect_width)
+    .attr('x', 100)
+    .attr('y', 0)
+    .attr('height', flow_data[2][0] * 2)
+    .attr('fill', SKYLINE_COLOR)
+
+flow_svg.append('rect')
+    .attr('width', rect_width)
+    .attr('x', 100)
+    .attr('y', 27)
+    .attr('height', flow_data[2][1] * 2)
+    .attr('fill', NON_SKYLINE_COLOR)
+
+flow_svg.append('rect')
+    .attr('width', rect_width)
+    .attr('x', 100)
+    .attr('y', 72)
+    .attr('height', flow_data[2][2] * 2)
+    .attr('fill', 'grey')
+
+let link = d3.linkHorizontal()
+    .x(function (d) {
+        console.log(d);
+        return d[0];
+    })
+    .y(function (d) {
+        return d[1];
+    });
+let path_data = [
+    {source: [5, 20], target: [5, 45], w: 10, opt: 'ss'},
+    {source: [12, 20], target: [35, 45], w: 5, opt: 'sn'},
+    {source: [20, 20], target: [80, 45], w: 5, opt: 'sb'},
+];
+let grads = flow_svg.append('defs').selectAll('linearGradient')
+    .data(path_data)
+    .enter()
+    .append('linearGradient')
+    .attr('id', (d, i) => {
+        return 'grad-' + i
+    })
+    .attr('gradientUnits', 'userSpaceOnUse');
+
+grads.attr('x1', d => {
+    return d.source[0]
+})
+    .attr('y1', d => {
+        return d.source[1]
+    })
+    .attr('x2', d => {
+        return d.target[0]
+    })
+    .attr('y2', d => {
+        return d.target[1]
+    });
+grads.append("stop")
+    .attr("offset", "30%")
+    .attr("stop-color", function (d, i) {
+        if (d.opt[0] == 's')
+            return SKYLINE_COLOR;
+        else
+            return NON_SKYLINE_COLOR
+    });
+grads.append("stop")
+    .attr("offset", "70%")
+    .attr("stop-color", function (d) {
+        if (d.opt[1] == 's')
+            return SKYLINE_COLOR;
+        else if (d.opt[1] == 'n')
+            return NON_SKYLINE_COLOR
+        else return 'grey'
+    });
+
+flow_svg.selectAll('path')
+    .data(path_data)
+    .enter()
+    .append('path')
+    .attr('d', function (d) {
+        console.log(d);
+        return "M" + d.source[1] + "," + d.source[0]
+            + "C" + (d.source[1] + d.target[1]) / 2 + "," + d.source[0]
+            + " " + (d.source[1] + d.target[1]) / 2 + "," + d.target[0]
+            + " " + d.target[1] + "," + d.target[0];
+    })
+    .attr('stroke-width', function (d) {
+        return d.w;
+    })
+    .attr('stroke', function (d, i) {
+        return 'url(#grad-' + i + ')';
+    })
+    .attr('fill', 'transparent')
+    .style('opacity', 0.7);
+
+// selected
+// A
+flow_svg.append('rect')
+    .attr('x', 10)
+    .attr('y', 0)
+    .attr('width', 3)
+    .attr('height', 10)
+    .attr('fill', 'green')
+    .style('opacity', 0.7)
+
+// B
+flow_svg.append('rect')
+    .attr('x', 10)
+    .attr('y', 10)
+    .attr('width', 3)
+    .attr('height', 10)
+    .attr('fill', 'pink')
+    .style('opacity', 0.7)
+
+// C
+flow_svg.append('rect')
+    .attr('x', 10)
+    .attr('y', 25)
+    .attr('width', 3)
+    .attr('height', 40)
+    .attr('fill', 'orange')
+    .style('opacity', 0.7)
