@@ -1,5 +1,16 @@
+let colormax = 20;
+let cs1 = d3.scaleLinear()
+    .domain([0, colormax / 2 - 1])
+    .range([d3.rgb('#4A6FE3'), d3.rgb('#DADEEE')])
+    .interpolate(d3.interpolateRgb);
+
+let cs2 = d3.scaleLinear()
+    .domain([colormax / 2, colormax - 1])
+    .range([d3.rgb('#F1D8DD'), d3.rgb('#D33F6A')])
+    .interpolate(d3.interpolateRgb);
+
 let svg = d3.select('body').append('svg')
-    .attr('width', 1000)
+    .attr('width', 1500)
     .attr('height', 1000);
 let glyph = svg.append('g')
     .attr('class', 'glyph')
@@ -7,25 +18,34 @@ let glyph = svg.append('g')
 
 const SKYLINE_COLOR = '#4A6FE3',
     NON_SKYLINE_COLOR = '#D33F6A';
-const column_scale = d3.scaleOrdinal(["#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "#c49c94", "#e377c2", "#f7b6d2", "#7f7f7f", "#c7c7c7", "#bcbd22", "#dbdb8d", "#17becf", "#9edae5"])
+const column_scale = d3.scaleOrdinal(["#1f77b4", "#aec7e8",
+    "#ff7f0e", "#ffbb78",
+    "#2ca02c", "#98df8a",
+    "#d62728", "#ff9896",
+    "#9467bd", "#c5b0d5",
+    "#8c564b", "#c49c94",
+    "#e377c2", "#f7b6d2",
+    "#7f7f7f", "#c7c7c7",
+    "#bcbd22", "#dbdb8d",
+    "#17becf", "#9edae5"])
 let arr = d3.range(0, 40).map(d => column_scale(d))
 let colorscale = d3.scaleOrdinal(d3.schemeCategory10);
 let glyphdata = [];
-let columns = [30, 20, 50, 70, 10, 40, 90, 100, 15, 25, 10, 21];
+let columns = [30, 20, 50, 70, 10, 40, 60, 33, 15, 25, 10, 21];
 let outerscale = d3.scaleLinear().domain([0, 100]).range([0.5, 150]);
-let radius = 10;
+let radius = 15;
 glyphdata.push({'dom': radius});
 
-glyph.selectAll('rect')
-    .data(arr)
-    .enter()
-    .append('rect')
-    .attr('width', '5px')
-    .attr('height', '5px')
-    .attr('x', function (d, i) {
-        return 500 + i * 5;
-    })
-    .attr('fill', (d, i) => arr[i]);
+// glyph.selectAll('rect')
+//     .data(arr)
+//     .enter()
+//     .append('rect')
+//     .attr('width', '5px')
+//     .attr('height', '5px')
+//     .attr('x', function (d, i) {
+//         return 500 + i * 5;
+//     })
+//     .attr('fill', (d, i) => arr[i]);
 
 let pie = d3.pie().sort(null)
     .value(function () {
@@ -49,15 +69,72 @@ glyph.selectAll("path")
         let arc = d3.arc()
             .outerRadius(function (d) {
                 console.log(d);
+                return radius + outerscale(d.data / 2);
+            })
+            .innerRadius(radius);
+        return arc(d);
+    });
+glyph.append('circle')
+    .attr('r', function (d) {
+        return radius;
+    })
+    .attr('fill', 'white')
+    .style('opacity', 0.9)
+    .attr('stroke', 'white')
+    .attr('stroke-width', '2px');
+glyph.append('circle')
+    .attr('r', function (d) {
+        return radius - 7;
+    })
+    .attr('fill', cs2(13))
+    .style('opacity', 1)
+    .attr('stroke', 'white')
+    .attr('stroke-width', '4px');
+
+
+let glyph2 = svg.append('g')
+    .attr('class', 'glyph2')
+    .attr('transform', 'translate(550, 250)');
+
+// glyph2.selectAll('rect')
+//     .data(arr)
+//     .enter()
+//     .append('rect')
+//     .attr('width', '5px')
+//     .attr('height', '5px')
+//     .attr('x', function (d, i) {
+//         return 500 + i * 5;
+//     })
+//     .attr('fill', (d, i) => arr[i]);
+
+// let pie = d3.pie().sort(null)
+//     .value(function () {
+//         return 100 / columns.length;
+//     });
+
+glyph2.selectAll("path")
+    .data(function (d, i) {
+        let pd = pie(columns);
+        return pd;
+    })
+    .enter()
+    .append('path')
+    .attr("fill", function (d, i) {
+        return column_scale(i);
+    })
+    .attr('stroke', 'white')
+    .style('opacity', 0.9)
+    .attr('stroke-width', '2px')
+    .attr("d", function (d, i) {
+        let arc = d3.arc()
+            .outerRadius(function (d) {
+                console.log(d);
                 return radius + outerscale(d.data);
             })
             .innerRadius(radius);
         return arc(d);
     });
-glyph.selectAll('circle')
-    .data(glyphdata)
-    .enter()
-    .append('circle')
+glyph2.append('circle')
     .attr('r', function (d) {
         return radius;
     })
@@ -65,17 +142,118 @@ glyph.selectAll('circle')
     .style('opacity', 0.9)
     .attr('stroke', 'white')
     .attr('stroke-width', '2px');
+glyph2.append('circle')
+    .attr('r', function (d) {
+        return radius - 7;
+    })
+    .attr('fill', cs1(2))
+    .style('opacity', 1)
+    .attr('stroke', 'white')
+    .attr('stroke-width', '4px');
 
-let colormax = 20;
-let cs1 = d3.scaleLinear()
-    .domain([0, colormax / 2 - 1])
-    .range([d3.rgb('#4A6FE3'), d3.rgb('#DADEEE')])
-    .interpolate(d3.interpolateRgb);
 
-let cs2 = d3.scaleLinear()
-    .domain([colormax / 2, colormax - 1])
-    .range([d3.rgb('#F1D8DD'), d3.rgb('#D33F6A')])
-    .interpolate(d3.interpolateRgb);
+let glyph3 = svg.append('g')
+    .attr('class', 'glyph3')
+    .attr('transform', 'translate(850, 250)');
+
+
+// glyph3.selectAll('rect')
+//     .data(arr)
+//     .enter()
+//     .append('rect')
+//     .attr('width', '5px')
+//     .attr('height', '5px')
+//     .attr('x', function (d, i) {
+//         return 500 + i * 5;
+//     })
+//     .attr('fill', (d, i) => arr[i]);
+
+// let pie = d3.pie().sort(null)
+//     .value(function () {
+//         return 100 / columns.length;
+//     });
+
+glyph3.selectAll("path")
+    .data(function (d, i) {
+        let pd = pie(columns);
+        return pd;
+    })
+    .enter()
+    .append('path')
+    .attr("fill", function (d, i) {
+        return column_scale(i);
+    })
+    .attr('stroke', 'white')
+    .style('opacity', 0.9)
+    .attr('stroke-width', '2px')
+    .attr("d", function (d, i) {
+        let arc = d3.arc()
+            .outerRadius(function (d) {
+                console.log(d);
+                return radius + outerscale(d.data / 4);
+            })
+            .innerRadius(radius);
+        return arc(d);
+    });
+glyph3.append('circle')
+    .attr('r', function (d) {
+        return radius;
+    })
+    .attr('fill', NON_SKYLINE_COLOR)
+    .style('opacity', 0.9)
+    .attr('stroke', 'white')
+    .attr('stroke-width', '2px');
+glyph3.append('circle')
+    .attr('r', function (d) {
+        return radius - 7;
+    })
+    .attr('fill', cs2(19))
+    .style('opacity', 1)
+    .attr('stroke', 'white')
+    .attr('stroke-width', '4px');
+
+let glyph4 = svg.append('g')
+    .attr('class', 'glyph2')
+    .attr('transform', 'translate(1150, 250)');
+glyph4.selectAll("path")
+    .data(function (d, i) {
+        let pd = pie(columns);
+        return pd;
+    })
+    .enter()
+    .append('path')
+    .attr("fill", function (d, i) {
+        return column_scale(i);
+    })
+    .attr('stroke', 'green')
+    .style('opacity', 1)
+    .attr('stroke-width', '2px')
+    .attr("d", function (d, i) {
+        let arc = d3.arc()
+            .outerRadius(function (d) {
+                console.log(d);
+                return radius + outerscale(d.data / 2);
+            })
+            .innerRadius(radius);
+        return arc(d);
+    });
+glyph4.append('circle')
+    .attr('r', function (d) {
+        return radius;
+    })
+    .attr('fill', 'white')
+    .style('opacity', 1)
+    .attr('stroke', 'white')
+    .attr('stroke-width', '2px');
+glyph4.append('circle')
+    .attr('r', function (d) {
+        return radius - 7;
+    })
+    .attr('fill', NON_SKYLINE_COLOR)
+    .style('opacity', 1)
+    .attr('stroke', 'white')
+    .attr('stroke-width', '4px');
+
 
 let rectsize = 15;
 
@@ -163,7 +341,7 @@ let scatter_data2 = [['A', 6, 6], ['B', 4, 7], ['C', 7, 2], ['D', 1, 8], ['E', 4
 
 let skyline_data = [[0, 8], [5, 8], [5, 7], [8, 7], [8, 0]];
 let skyline_points = [['B', 5, 8], ['E', 8, 7]]
-let skyline_data2 = [[0, 8],[1,8],[1,7], [4, 7], [4, 6], [6, 6], [6, 2], [7, 2], [7, 0]];
+let skyline_data2 = [[0, 8], [1, 8], [1, 7], [4, 7], [4, 6], [6, 6], [6, 2], [7, 2], [7, 0]];
 
 
 const x = d3.scaleLinear()
@@ -324,7 +502,7 @@ s1.append('g')
     .append('path')
     .attr('d', skyline_gen(skyline_data))
     .attr('fill', 'transparent')
-        .attr('stroke', '#4A6FE3')
+    .attr('stroke', '#4A6FE3')
     .style('stroke-width', 3)
     .style('opacity', 0.4)
 s1.append('g')
