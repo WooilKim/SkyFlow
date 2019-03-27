@@ -12,9 +12,6 @@ let cs2 = d3.scaleLinear()
 let svg = d3.select('body').append('svg')
     .attr('width', 1500)
     .attr('height', 1000);
-let glyph = svg.append('g')
-    .attr('class', 'glyph')
-    .attr('transform', 'translate(250, 250)');
 
 const SKYLINE_COLOR = '#4A6FE3',
     NON_SKYLINE_COLOR = '#D33F6A';
@@ -46,6 +43,9 @@ glyphdata.push({'dom': radius});
 //         return 500 + i * 5;
 //     })
 //     .attr('fill', (d, i) => arr[i]);
+let glyph = svg.append('g')
+    .attr('class', 'glyph')
+    .attr('transform', 'translate(300, 250)');
 
 let pie = d3.pie().sort(null)
     .value(function () {
@@ -64,7 +64,7 @@ glyph.selectAll("path")
     })
     .attr('stroke', 'white')
     .style('opacity', 0.9)
-    .attr('stroke-width', '2px')
+    .attr('stroke-width', '1px')
     .attr("d", function (d, i) {
         let arc = d3.arc()
             .outerRadius(function (d) {
@@ -81,7 +81,7 @@ glyph.append('circle')
     .attr('fill', 'white')
     .style('opacity', 0.9)
     .attr('stroke', 'white')
-    .attr('stroke-width', '2px');
+    .attr('stroke-width', '1px');
 glyph.append('circle')
     .attr('r', function (d) {
         return radius - 7;
@@ -94,7 +94,7 @@ glyph.append('circle')
 
 let glyph2 = svg.append('g')
     .attr('class', 'glyph2')
-    .attr('transform', 'translate(550, 250)');
+    .attr('transform', 'translate(450, 250)');
 
 // glyph2.selectAll('rect')
 //     .data(arr)
@@ -124,12 +124,12 @@ glyph2.selectAll("path")
     })
     .attr('stroke', 'white')
     .style('opacity', 0.9)
-    .attr('stroke-width', '2px')
+    .attr('stroke-width', '1px')
     .attr("d", function (d, i) {
         let arc = d3.arc()
             .outerRadius(function (d) {
                 console.log(d);
-                return radius + outerscale(d.data);
+                return radius + outerscale(d.data * 2 / 3);
             })
             .innerRadius(radius);
         return arc(d);
@@ -154,7 +154,7 @@ glyph2.append('circle')
 
 let glyph3 = svg.append('g')
     .attr('class', 'glyph3')
-    .attr('transform', 'translate(850, 250)');
+    .attr('transform', 'translate(300, 380)');
 
 
 // glyph3.selectAll('rect')
@@ -185,7 +185,7 @@ glyph3.selectAll("path")
     })
     .attr('stroke', 'white')
     .style('opacity', 0.9)
-    .attr('stroke-width', '2px')
+    .attr('stroke-width', '1px')
     .attr("d", function (d, i) {
         let arc = d3.arc()
             .outerRadius(function (d) {
@@ -212,64 +212,60 @@ glyph3.append('circle')
     .attr('stroke', 'white')
     .attr('stroke-width', '4px');
 
-let glyph4 = svg.append('g')
-    .attr('class', 'glyph2')
-    .attr('transform', 'translate(1150, 250)');
-glyph4.selectAll("path")
-    .data(function (d, i) {
-        let pd = pie(columns);
-        return pd;
-    })
-    .enter()
-    .append('path')
-    .attr("fill", function (d, i) {
-        return column_scale(i);
-    })
-    .attr('stroke', 'green')
-    .style('opacity', 1)
-    .attr('stroke-width', '2px')
-    .attr("d", function (d, i) {
-        let arc = d3.arc()
-            .outerRadius(function (d) {
-                console.log(d);
-                return radius + outerscale(d.data / 2);
-            })
-            .innerRadius(radius);
-        return arc(d);
-    });
-glyph4.append('circle')
-    .attr('r', function (d) {
-        return radius;
-    })
-    .attr('fill', 'white')
-    .style('opacity', 1)
-    .attr('stroke', 'white')
-    .attr('stroke-width', '2px');
-glyph4.append('circle')
-    .attr('r', function (d) {
-        return radius - 7;
-    })
-    .attr('fill', NON_SKYLINE_COLOR)
-    .style('opacity', 1)
-    .attr('stroke', 'white')
-    .attr('stroke-width', '4px');
+// let glyph4 = svg.append('g')
+//     .attr('class', 'glyph2')
+//     .attr('transform', 'translate(1150, 250)');
+// glyph4.selectAll("path")
+//     .data(function (d, i) {
+//         let pd = pie(columns);
+//         return pd;
+//     })
+//     .enter()
+//     .append('path')
+//     .attr("fill", function (d, i) {
+//         return column_scale(i);
+//     })
+//     .attr('stroke', 'green')
+//     .style('opacity', 1)
+//     .attr('stroke-width', '2px')
+//     .attr("d", function (d, i) {
+//         let arc = d3.arc()
+//             .outerRadius(function (d) {
+//                 console.log(d);
+//                 return radius + outerscale(d.data / 2);
+//             })
+//             .innerRadius(radius);
+//         return arc(d);
+//     });
+// glyph4.append('circle')
+//     .attr('r', function (d) {
+//         return radius;
+//     })
+//     .attr('fill', 'white')
+//     .style('opacity', 1)
+//     .attr('stroke', 'white')
+//     .attr('stroke-width', '2px');
+// glyph4.append('circle')
+//     .attr('r', function (d) {
+//         return radius - 7;
+//     })
+//     .attr('fill', NON_SKYLINE_COLOR)
+//     .style('opacity', 1)
+//     .attr('stroke', 'white')
+//     .attr('stroke-width', '4px');
 
 
 let rectsize = 15;
 
-
-let colorbar_svg = d3.select('body')
-    .append('svg')
-    .attr('class', 'colorbar')
-    .attr('width', 500)
-    .attr('height', 500);
+//
+let colorbar_svg = svg
 
 colorbar_svg.append('g')
     .attr('class', 'colorbar')
-    .attr('transform', 'translate(0, 0)');
+    .attr('transform', 'scale(0.7) translate(490, 520)');
 
 
-colorbar_svg.select('g').selectAll('rect')
+colorbar_svg.select('g.colorbar').selectAll('rect')
     .data(d3.range(0, colormax))
     .enter()
     .append('rect')
@@ -294,36 +290,36 @@ colorbar_svg.select('g').selectAll('rect')
         else
             return cs2(d);
     });
-colorbar_svg.select('g')
+colorbar_svg.select('g.colorbar')
     .append('text')
-    .attr('x', 60)
+    .attr('x', 90)
     .attr('y', 20)
-    .style('text-anchor', 'middle')
+    .style('text-anchor', 'end')
     .style('alignment-baseline', 'middle')
     .style('font-size', '12px')
     .text('Skyline');
 
-colorbar_svg.select('g')
+colorbar_svg.select('g.colorbar')
     .append('text')
-    .attr('x', 60)
+    .attr('x', 90)
     .attr('y', 40)
-    .style('text-anchor', 'middle')
+    .style('text-anchor', 'end')
     .style('alignment-baseline', 'middle')
     .style('font-size', '12px')
     .text('Non-skyline');
 
 
-colorbar_svg.select('g')
+colorbar_svg.select('g.colorbar')
     .append('text')
     .attr('x', 180)
     .attr('y', 65)
     .style('text-anchor', 'middle')
     .style('alignment-baseline', 'middle')
     .style('font-size', '12px')
-    .text('Dominance');
+    .text('Dominance score');
 
 let axis = d3.axisBottom(d3.scaleOrdinal().domain(['high', 'low']).range([0, rectsize * colormax / 2]));
-colorbar_svg.select('g')
+colorbar_svg.select('g.colorbar')
     .append('g')
     .attr('transform', 'translate(99.5,50)')
     .call(axis);
@@ -607,44 +603,104 @@ s2.append('g')
 let detail_svg = d3.select('body').append('svg');
 detail_svg.append('g');
 let detail_data = [10, 11, 13, 16, 17, 19, 19, 20, 21, 22, 22, 24, 25, 27, 28, 30, 36, 40, 46, 50];
-console.log(detail_data.length);
+let detail_scale = d3.scaleLinear().domain([100, 0]).range([0, 50])
 let detail_line = d3.line()
+    .x(function (d, i) {
+        return 30 + i * 10.5
+    })
+    .y(function (d) {
+        return detail_scale(d * 1.5);
+    })
+    .curve(d3.curveMonotoneX)
+detail_svg.append('path')
+    .datum(detail_data)
+    .attr('class', 'line')
+    .attr('d', detail_line)
+    .attr('transform', 'translate(0,20)')
+    .attr('fill', 'transparent')
+    .attr('stroke', 'grey');
 
-detail_svg.selectAll('rect')
-    .data(detail_data)
+skys_data = [5, 10, 11, 13, 14, 15, 17, 19, 20, 23, 25, 27, 28, 30, 31, 33, 34, 35, 39, 40]
+non_data = [1, 2, 3, 4, 6, 7, 8, 9, 12, 16, 18, 21, 22, 24, 26, 29, 32, 36, 37, 38]
+detail_svg.selectAll('.skys')
+    .data(skys_data)
     .enter()
     .append('rect')
-    .attr('x', (d, i) => i * 2)
-    .attr('y', function (d, i) {
-        if (i < 50)
-            return 100 - d;
-        else
-            return 0;
-    })
-    .attr('fill', 'blue')
-    .attr('width', 2)
-    .attr('height', function (d, i) {
-        if (i < 50)
-            return d;
-        else
-            return 100 - d;
-    });
+    .attr('x', d => 30 + (d - 1) * 5)
+    .attr('y', 15)
+    .attr('height', 5)
+    .attr('width', 5)
+    .attr('fill', SKYLINE_COLOR)
 
-let detail_axis = d3.axisLeft(d3.scaleLinear().domain([100, 0]).range([0, 100])).tickValues([10, 50])
+// detail_svg.append('rect')
+//     .attr('x', 30)
+//     .attr('y', 15)
+//     .attr('width', 200)
+//     .attr('height', 5)
+//     .attr('fill', 'transparent')
+//     .attr('stroke', 'black')
+// detail_svg.append('rect')
+//     .attr('x', 30)
+//     .attr('y', 15)
+//     .attr('width', 230)
+//     .attr('height', 100)
+//     .attr('fill', 'transparent')
+//     .attr('stroke', 'black')
+detail_svg.selectAll('.nonskys')
+    .data(non_data)
+    .enter()
+    .append('rect')
+    .attr('x', d => 30 + (d - 1) * 5)
+    .attr('y', 70)
+    .attr('height', 5)
+    .attr('width', 5)
+    .attr('fill', NON_SKYLINE_COLOR)
+// detail_svg.selectAll('rect')
+//     .data(detail_data)
+//     .enter()
+//     .append('rect')
+//     .attr('x', (d, i) => i * 2)
+//     .attr('y', function (d, i) {
+//         if (i < 50)
+//             return 100 - d;
+//         else
+//             return 0;
+//     })
+//     .attr('fill', 'blue')
+//     .attr('width', 2)
+//     .attr('height', function (d, i) {
+//         if (i < 50)
+//             return d;
+//         else
+//             return 100 - d;
+//     });
+
+let detail_axis = d3.axisLeft(d3.scaleLinear().domain([100, 0]).range([0, 50])).tickValues([15, 75])
 detail_svg.append('g')
-    .attr('transform', 'translate(30,0)')
+    .attr('transform', 'translate(30,20)')
     .call(detail_axis);
 
-let detail_selected = [['orange'], ['blue'], ['green']]
+let detail_axis2 = d3.axisLeft(d3.scaleLinear().domain([100, 0]).range([0, 50]))
+detail_svg.append('g')
+    .attr('transform', 'translate(30,20)')
+    .call(detail_axis2.tickValues([0, 100]).tickFormat('').tickSize(-200))
+    .style('opacity', 0.9)
+// s2.append('g')
+//     .attr('transform', 'translate(30,10)')
+//     .call(yAxis.tickFormat(''))
+//     .style('opacity', 0.9)
+
+let detail_selected = [[10, 'orange'], [20, 'brown'], [32, 'green']]
 detail_svg.selectAll('.selected')
     .data(detail_selected)
     .enter()
     .append('rect')
-    .attr('x', (d, i) => i * 100 / 3)
-    .attr('y', 110)
-    .attr('width', 100 / 3)
-    .attr('height', 10)
-    .attr('fill', d => d);
+    .attr('x', (d, i) => (d[0] - 1) * 5)
+    .attr('y', 20)
+    .attr('width', 5)
+    .attr('height', 50)
+    .attr('fill', d => d[1])
+    .style('opacity', 0.7);
 
 let flow_svg = d3.select('body').append('svg');
 let flow_data = [[10, 20, 5], [13, 18, 10], [11, 20, 7]];
