@@ -10,7 +10,7 @@ let cs2 = d3.scaleLinear()
     .interpolate(d3.interpolateRgb);
 
 let svg = d3.select('body').append('svg')
-    .attr('width', 1500)
+    .attr('width', 800)
     .attr('height', 1000);
 
 const SKYLINE_COLOR = '#4A6FE3',
@@ -326,8 +326,8 @@ colorbar_svg.select('g.colorbar')
 
 
 let scatter_svg = d3.select('body').append('svg')
-    .attr('width', '500px')
-    .attr('height', '500px');
+    .attr('width', '450px')
+    .attr('height', '1000px');
 
 // scatter_svg.append('g')
 //     .attr('transform', 'translate(30,10)');
@@ -378,11 +378,11 @@ scatter_svg.selectAll('.grid')
 scatter_svg.append('text')
     .attr('transform', 'rotate(-90) translate(-150,110)')
     .style('text-anchor', 'middle')
-    .text('rebound')
+    .text('The number of rebound')
 scatter_svg.append('text')
     .attr('transform', 'translate(265,340)')
     .style('text-anchor', 'middle')
-    .text('score')
+    .text('The number of score')
 scatter_svg.append('g')
     .attr('transform', 'translate(130,310)')
     .call(xAxis)
@@ -401,7 +401,10 @@ scatter_svg.append('g')
     .attr('width', d => x(d[1]))
     .attr('height', d => y(10 - d[2]))
     .style('opacity', 0.3)
-
+scatter_svg.append('text')
+    .text('(a)')
+    .attr('y', 15)
+    .attr('x', 85)
 let skyline_gen = d3.line()
     .x(d => x(d[0]))
     .y(d => y(d[1]))
@@ -451,10 +454,13 @@ let scatter_svg2 = d3.select('body').append('svg')
 
 let s1 = scatter_svg2.append("g")
     .attr('class', 's1')
-    .attr('transform', 'translate(200,200), skewY(0)')
+    .attr('transform', 'translate(15,0), skewY(0)')
+scatter_svg2.append('text')
+    .text('(b)')
+    .attr('y', 15);
 let s2 = scatter_svg2.append("g")
     .attr('class', 's2')
-    .attr('transform', 'translate(200,200), skewY(0)')
+    .attr('transform', 'translate(15,0), skewY(0)')
 // let s3 = scatter_svg2.append("g")
 //     .attr('class', 's3')
 //     .attr('transform', 'translate(240,240), skewY(0)')
@@ -492,7 +498,14 @@ s1.append('g')
     .attr('transform', 'translate(30,10)')
     .call(yAxis)
 
-
+s1.append('text')
+    .attr('transform', 'rotate(-90) translate(-150,10)')
+    .style('text-anchor', 'middle')
+    .text('The number of rebound')
+s1.append('text')
+    .attr('transform', 'translate(165,340)')
+    .style('text-anchor', 'middle')
+    .text('The number of score')
 s1.append('g')
     .attr('transform', 'translate(30,10)')
     .append('path')
@@ -600,10 +613,11 @@ s2.append('g')
     .attr('y', d => y(d[2]) - 5)
     .style('opacity', 0.9);
 
-let detail_svg = d3.select('body').append('svg');
-detail_svg.append('g');
+let detail_svg = d3.select('body').append('svg').attr('height', 500);
 let detail_data = [10, 11, 13, 16, 17, 19, 19, 20, 21, 22, 22, 24, 25, 27, 28, 30, 36, 40, 46, 50];
+let detail_data2 = [15, 16, 17, 18, 20, 22, 23, 24, 26, 27, 28, 29, 30, 31, 31, 31, 32, 33, 34, 34, 35, 35, 36, 37, 37, 38, 39, 40, 41, 41, 42, 45, 49, 54, 56, 59, 62, 68, 71, 75]
 let detail_scale = d3.scaleLinear().domain([100, 0]).range([0, 50])
+let detail_scale2 = d3.scaleLinear().domain([0, 100]).range([0, 50])
 let detail_line = d3.line()
     .x(function (d, i) {
         return 30 + i * 10.5
@@ -612,13 +626,13 @@ let detail_line = d3.line()
         return detail_scale(d * 1.5);
     })
     .curve(d3.curveMonotoneX)
-detail_svg.append('path')
-    .datum(detail_data)
-    .attr('class', 'line')
-    .attr('d', detail_line)
-    .attr('transform', 'translate(0,20)')
-    .attr('fill', 'transparent')
-    .attr('stroke', 'grey');
+// detail_svg.append('path')
+//     .datum(detail_data)
+//     .attr('class', 'line')
+//     .attr('d', detail_line)
+//     .attr('transform', 'translate(0,20)')
+//     .attr('fill', 'transparent')
+//     .attr('stroke', 'grey');
 
 skys_data = [5, 10, 11, 13, 14, 15, 17, 19, 20, 23, 25, 27, 28, 30, 31, 33, 34, 35, 39, 40]
 non_data = [1, 2, 3, 4, 6, 7, 8, 9, 12, 16, 18, 21, 22, 24, 26, 29, 32, 36, 37, 38]
@@ -632,20 +646,6 @@ detail_svg.selectAll('.skys')
     .attr('width', 5)
     .attr('fill', SKYLINE_COLOR)
 
-// detail_svg.append('rect')
-//     .attr('x', 30)
-//     .attr('y', 15)
-//     .attr('width', 200)
-//     .attr('height', 5)
-//     .attr('fill', 'transparent')
-//     .attr('stroke', 'black')
-// detail_svg.append('rect')
-//     .attr('x', 30)
-//     .attr('y', 15)
-//     .attr('width', 230)
-//     .attr('height', 100)
-//     .attr('fill', 'transparent')
-//     .attr('stroke', 'black')
 detail_svg.selectAll('.nonskys')
     .data(non_data)
     .enter()
@@ -655,25 +655,37 @@ detail_svg.selectAll('.nonskys')
     .attr('height', 5)
     .attr('width', 5)
     .attr('fill', NON_SKYLINE_COLOR)
-// detail_svg.selectAll('rect')
-//     .data(detail_data)
+
+detail_svg.selectAll('.bars')
+    .data(detail_data2)
+    .enter()
+    .append('rect')
+    .attr('class', 'bars')
+    .attr('x', (d, i) => 30 + i * 5)
+    .attr('y', function (d, i) {
+        return 70 - detail_scale2(d);
+    })
+    .attr('fill', 'grey')
+    .attr('width', 5)
+    .style('opacity', 0.7)
+    .attr('height', function (d, i) {
+        return detail_scale2(d);
+    })
+    .attr('stroke', 'grey');
+
+// detail_svg.selectAll('.barstext')
+//     .data(detail_data2)
 //     .enter()
-//     .append('rect')
-//     .attr('x', (d, i) => i * 2)
+//     .append('text')
+//     .attr('class', 'bars')
+//     .attr('x', (d, i) => 30 + i * 5)
 //     .attr('y', function (d, i) {
-//         if (i < 50)
-//             return 100 - d;
-//         else
-//             return 0;
+//         return 70 - detail_scale2(d);
 //     })
-//     .attr('fill', 'blue')
-//     .attr('width', 2)
-//     .attr('height', function (d, i) {
-//         if (i < 50)
-//             return d;
-//         else
-//             return 100 - d;
-//     });
+//     .style('font-size', 5)
+//     .text(function (d) {
+//         return d;
+//     })
 
 let detail_axis = d3.axisLeft(d3.scaleLinear().domain([100, 0]).range([0, 50])).tickValues([15, 75])
 detail_svg.append('g')
@@ -703,77 +715,79 @@ detail_svg.selectAll('.selected')
     .style('opacity', 0.7);
 
 let flow_svg = d3.select('body').append('svg');
-let flow_data = [[10, 20, 5], [13, 18, 10], [11, 20, 7]];
+let flow_data = [[10, 20, 5], [13, 18, 8], [11, 20, 6]];
 
-let rect_width = 10;
+let rect_width = 8;
 
 // t1
 flow_svg.append('rect')
     .attr('width', rect_width)
-    .attr('x', 0)
+    .attr('x', 2)
     .attr('y', 0)
     .attr('height', flow_data[0][0] * 2)
     .attr('fill', SKYLINE_COLOR)
+    .style('opacity', 0.5)
 
 flow_svg.append('rect')
     .attr('width', rect_width)
-    .attr('x', 0)
+    .attr('x', 2)
     .attr('y', 25)
     .attr('height', flow_data[0][1] * 2)
     .attr('fill', NON_SKYLINE_COLOR)
+    .style('opacity', 0.5)
 
 flow_svg.append('rect')
     .attr('width', rect_width)
-    .attr('x', 0)
+    .attr('x', 2)
     .attr('y', 70)
     .attr('height', flow_data[0][2] * 2)
     .attr('fill', 'grey')
-
+    .style('opacity', 0.5)
 // t2
 flow_svg.append('rect')
     .attr('width', rect_width)
-    .attr('x', 50)
+    .attr('x', 52)
     .attr('y', 0)
     .attr('height', flow_data[1][0] * 2)
     .attr('fill', SKYLINE_COLOR)
-
+    .style('opacity', 0.5)
 flow_svg.append('rect')
     .attr('width', rect_width)
-    .attr('x', 50)
+    .attr('x', 52)
     .attr('y', 31)
     .attr('height', flow_data[1][1] * 2)
     .attr('fill', NON_SKYLINE_COLOR)
-
+    .style('opacity', 0.9)
 flow_svg.append('rect')
     .attr('width', rect_width)
-    .attr('x', 50)
+    .attr('x', 52)
     .attr('y', 72)
     .attr('height', flow_data[1][2] * 2)
     .attr('fill', 'grey')
-
+    .style('opacity', 0.5)
 
 // t3
 flow_svg.append('rect')
     .attr('width', rect_width)
-    .attr('x', 100)
+    .attr('x', 102)
     .attr('y', 0)
     .attr('height', flow_data[2][0] * 2)
     .attr('fill', SKYLINE_COLOR)
-
+    .style('opacity', 0.5)
 flow_svg.append('rect')
     .attr('width', rect_width)
-    .attr('x', 100)
+    .attr('x', 102)
     .attr('y', 27)
     .attr('height', flow_data[2][1] * 2)
     .attr('fill', NON_SKYLINE_COLOR)
-
+    .style('opacity', 0.5)
 flow_svg.append('rect')
     .attr('width', rect_width)
-    .attr('x', 100)
+    .attr('x', 102)
     .attr('y', 72)
     .attr('height', flow_data[2][2] * 2)
     .attr('fill', 'grey')
-
+    .style('opacity', 0.5)
 let link = d3.linkHorizontal()
     .x(function (d) {
         console.log(d);
@@ -782,11 +796,83 @@ let link = d3.linkHorizontal()
     .y(function (d) {
         return d[1];
     });
+
+let areagenerator = d3.area()
+    .x(d => d.x)
+    .y0(d => d.y0)
+    .y1(d => d.y1)
+    .curve(d3.curveBasis);
+//let flow_data = [[10, 20, 5], [13, 18, 10], [11, 20, 7]];
+let flow_x1 = 15;
+let flow_x2 = 50;
+let flow_x3 = 65;
+let flow_x4 = 100;
 let path_data = [
-    {source: [5, 20], target: [5, 45], w: 10, opt: 'ss'},
-    {source: [12, 20], target: [35, 45], w: 5, opt: 'sn'},
-    {source: [20, 20], target: [80, 45], w: 5, opt: 'sb'},
+    // 0
+    {source: [flow_x1, 0], target: [flow_x2, 0], w: 10, opt: 'ss', opac: 0.9},
+    {source: [flow_x1, 10], target: [flow_x2, 31], w: 6, opt: 'sn', opac: 0.5},
+    {source: [flow_x1, 16], target: [flow_x2, 72], w: 4, opt: 'sb', opac: 0.5},
+    // 1
+    {source: [flow_x1, 25], target: [flow_x2, 10], w: 11, opt: 'ns', opac: 0.5},
+    {source: [flow_x1, 36], target: [flow_x2, 37], w: 25, opt: 'nn', opac: 0.5},
+    {source: [flow_x1, 61], target: [flow_x2, 76], w: 4, opt: 'nb', opac: 0.5},
+    // // 2
+    {source: [flow_x1, 70], target: [flow_x2, 21], w: 5, opt: 'bs', opac: 0.5},
+    {source: [flow_x1, 75], target: [flow_x2, 62], w: 5, opt: 'bn', opac: 0.5},
+
+    // 0
+    {source: [flow_x3, 0], target: [flow_x4, 0], w: 15, opt: 'ss', opac: 0.5},
+    {source: [flow_x3, 15], target: [flow_x4, 27], w: 8, opt: 'sn', opac: 0.5},
+    {source: [flow_x3, 23], target: [flow_x4, 72], w: 3, opt: 'sb', opac: 0.5},
+    // 1
+    {source: [flow_x3, 31], target: [flow_x4, 15], w: 7, opt: 'ns', opac: 0.9},
+    {source: [flow_x3, 38], target: [flow_x4, 35], w: 20, opt: 'nn', opac: 0.5},
+    {source: [flow_x3, 58], target: [flow_x4, 75], w: 9, opt: 'nb', opac: 0.1},
+    // // 2
+    {source: [flow_x3, 72], target: [flow_x4, 55], w: 12, opt: 'bn', opac: 0.5},
+    // {source: [flow_x3, 77], target: [flow_x4, 35], w: 5, opt: 'bn', opac: 0.5},
+
+    // // 3
+    // {source: [15, 25], target: [50, 0], w: 10, opt: 'ss', opac: 0.2},
+    // {source: [15, 30], target: [50, 35], w: 25, opt: 'sn', opac: 0.5},
+    // {source: [15, 60], target: [50, 80], w: 5, opt: 'sb', opac: 0.9},
+
 ];
+
+let paths = [];
+for (pi in path_data) {
+    let p = path_data[pi];
+    let p1 = {
+        x: p.source[0],
+        y0: p.source[1],
+        y1: p.source[1] + p.w,
+        opt: p.opt,
+        opac: p.opac
+    };
+    let p2 = {
+        x: p.source[0] + (p.target[0] - p.source[0]) / 3,
+        y0: (p.source[1]),
+        y1: (p.source[1]) + p.w,
+        opt: p.opt,
+        opac: p.opac
+    };
+    let p3 = {
+        x: p.source[0] + (p.target[0] - p.source[0]) * 2 / 3,
+        y0: p.target[1],
+        y1: p.target[1] + p.w,
+        opt: p.opt,
+        opac: p.opac
+    }
+    let p4 = {
+        x: p.target[0],
+        y0: p.target[1],
+        y1: p.target[1] + p.w,
+        opt: p.opt,
+        opac: p.opac
+    };
+    paths.push([p1, p2, p3, p4]);
+}
+
 let grads = flow_svg.append('defs').selectAll('linearGradient')
     .data(path_data)
     .enter()
@@ -813,9 +899,12 @@ grads.append("stop")
     .attr("stop-color", function (d, i) {
         if (d.opt[0] == 's')
             return SKYLINE_COLOR;
-        else
+        else if (d.opt[0] == 'n')
             return NON_SKYLINE_COLOR
+        else if (d.opt[0] == 'b')
+            return 'grey'
     });
+
 grads.append("stop")
     .attr("offset", "70%")
     .attr("stop-color", function (d) {
@@ -827,26 +916,29 @@ grads.append("stop")
     });
 
 flow_svg.selectAll('path')
-    .data(path_data)
+    .data(paths)
     .enter()
     .append('path')
-    .attr('d', function (d) {
-        console.log(d);
-        return "M" + d.source[1] + "," + d.source[0]
-            + "C" + (d.source[1] + d.target[1]) / 2 + "," + d.source[0]
-            + " " + (d.source[1] + d.target[1]) / 2 + "," + d.target[0]
-            + " " + d.target[1] + "," + d.target[0];
-    })
+    // .attr('d', function (d) {
+    //     console.log(d);
+    //     return "M" + d.source[0] + "," + d.source[1]
+    //         + "C" + (d.source[0] + d.target[0]) / 2 + "," + d.source[1]
+    //         + " " + (d.source[0] + d.target[0]) / 2 + "," + d.target[1]
+    //         + " " + d.target[0] + "," + d.target[1];
+    // })
+    .attr('d', areagenerator)
     .attr('stroke-width', function (d) {
-        return d.w;
+        return 0;
     })
-    .attr('stroke', function (d, i) {
+    // .attr('stroke', 'black')
+    .attr('fill', function (d, i) {
         return 'url(#grad-' + i + ')';
     })
-    .attr('fill', 'transparent')
-    .style('opacity', 0.7);
+    .attr('stroke', 'transparent')
+    .style('opacity', d => d[0].opac);
 
 // selected
+let selected_opac = 0.7;
 // A
 flow_svg.append('rect')
     .attr('x', 10)
@@ -854,17 +946,47 @@ flow_svg.append('rect')
     .attr('width', 3)
     .attr('height', 10)
     .attr('fill', 'green')
-    .style('opacity', 0.7)
+    .style('opacity', selected_opac)
 
+flow_svg.append('rect')
+    .attr('x', 60)
+    .attr('y', 0)
+    .attr('width', 3)
+    .attr('height', 13)
+    .attr('fill', 'green')
+    .style('opacity', selected_opac)
+
+flow_svg.append('rect')
+    .attr('x', 110)
+    .attr('y', 27)
+    .attr('width', 3)
+    .attr('height', 40)
+    .attr('fill', 'green')
+    .style('opacity', selected_opac)
 // B
 flow_svg.append('rect')
     .attr('x', 10)
     .attr('y', 10)
     .attr('width', 3)
     .attr('height', 10)
-    .attr('fill', 'pink')
-    .style('opacity', 0.7)
+    .attr('fill', 'brown')
+    .style('opacity', selected_opac)
 
+flow_svg.append('rect')
+    .attr('x', 60)
+    .attr('y', 31)
+    .attr('width', 3)
+    .attr('height', 36)
+    .attr('fill', 'brown')
+    .style('opacity', selected_opac)
+
+flow_svg.append('rect')
+    .attr('x', 110)
+    .attr('y', 72)
+    .attr('width', 3)
+    .attr('height', 12)
+    .attr('fill', 'brown')
+    .style('opacity', selected_opac)
 // C
 flow_svg.append('rect')
     .attr('x', 10)
@@ -872,4 +994,81 @@ flow_svg.append('rect')
     .attr('width', 3)
     .attr('height', 40)
     .attr('fill', 'orange')
-    .style('opacity', 0.7)
+    .style('opacity', selected_opac)
+
+flow_svg.append('rect')
+    .attr('x', 60)
+    .attr('y', 13)
+    .attr('width', 3)
+    .attr('height', 13)
+    .attr('fill', 'orange')
+    .style('opacity', selected_opac)
+
+flow_svg.append('rect')
+    .attr('x', 110)
+    .attr('y', 0)
+    .attr('width', 3)
+    .attr('height', 22)
+    .attr('fill', 'orange')
+    .style('opacity', selected_opac)
+
+
+// new detail svg
+let new_detail_svg = d3.select('body').append('svg')
+    .attr('width', 1500)
+    .attr('height', 500);
+
+let new_detail_columns = ['column1', 'column2']
+let row_height = 100;
+let rows = new_detail_svg.selectAll('.row')
+    .data(new_detail_columns)
+    .enter()
+    .append('g')
+    .attr('class', 'row')
+    .attr('transform', (d, i) => 'translate(0,' + i * row_height + ')');
+
+rows.append('rect')
+    .attr('x', 0)
+    .attr('y', 0)
+    .attr('width', 10)
+    .attr('height', row_height)
+    .attr('fill', (d, i) => colorscale(i))
+
+rows.append('text')
+    .attr('x', 30)
+    .attr('y', 30)
+    .text((d) => d);
+
+let years_data = d3.range(1990, 2000)
+let years = rows.selectAll('.year')
+    .data(years_data)
+    .enter()
+    .append('g')
+    .attr('class', 'year')
+    .attr('transform', (d, i) => 'translate(' + (200 + i * 100) + ',0)');
+
+years.append('text')
+    .text(d => d)
+    .attr('y', 20)
+
+let detail_sample_svg = d3.select('body').append('svg');
+detail_sample_svg.append('g')
+detail_sample_svg.select('g')
+    .append('text')
+    .attr('y', 10)
+    .text('year');
+
+let sample_attr_values = [20, 40, 0, 50, 70, 90];
+
+let attr_scale = d3.scaleLinear().domain([0, 100]).range([0, 10])
+detail_sample_svg.select('g')
+    .selectAll('.attr')
+    .data(sample_attr_values)
+    .enter()
+    .append('rect')
+    .attr('class', 'attr')
+    .attr('x', (d, i) => i * 5)
+    .attr('y', d => 30 + 10 - attr_scale(d))
+    .attr('height', d => attr_scale(d))
+    .attr('width', 5)
+    .attr('fill', (d, i) => colorscale(i))

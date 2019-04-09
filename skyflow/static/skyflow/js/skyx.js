@@ -29,6 +29,7 @@ let filter_selected = [];
 let current_year = 1978;
 let selected_years = [];
 let selected_players = [];
+let columnlistfinal = ['PTS', 'AST', 'STL', 'BLK', 'TRB', 'ORB', 'DRB', '3P%', '3P', 'FG%', 'FG', 'G']
 let selected_columns = ['0', 'Year', 'G', 'ORB%', 'TRB%', 'AST%', 'STL%', 'BLK%', 'TOV%'];
 let skyline_columns = [];
 let yearly_filtered = [];
@@ -117,39 +118,59 @@ draw_info();
 function draw_info() {
     d3.csv("/static/skyflow/data/processed/NBA_columns_extent.csv").then(function (data) {
         // console.log(data);
+        columnfinaldata = [];
+        console.log(data);
+        for (let i = 0; i < data.length; i++) {
+            console.log(data[i]['column'])
+            if (columnlistfinal.indexOf(data[i]['column']) < 0)
+                continue;
+            else {
+                columnfinaldata.push(data[i])
+            }
+
+        }
+        console.log(columnfinaldata);
         let infosvg = d3.select('div#info').append('svg')
             .attr('height', function () {
-                return data.length * 20
+                return data.length * 30
             })
             .attr('width', 320)
 
         let infog = infosvg.selectAll('g')
-            .data(data)
+            .data(columnfinaldata)
             .enter()
             .append('g')
             .attr('transform', function (d, i) {
-                return 'translate(0,' + i * 20 + ')';
+                return 'translate(0,' + i * 30 + ')';
             });
         infog.append('rect')
+            .attr('class', 'row')
             .attr('width', 320)
-            .attr('height', data.length * 20)
+            .attr('height', columnfinaldata.length * 30)
+        infog.append('rect')
+            .attr('width', 10)
+            .attr('height', columnfinaldata.length * 30)
+            .attr('fill', function (d, i) {
+                return colorscale(i);
+            })
+            .style('opacity', 0.9)
         infog.append('text')
             .text(function (d) {
                 return d.column;
             })
             .style('text-anchor', 'middle')
             .style('alignment-baseline', 'middle')
-            .style('font-size', '11px')
-            .attr('x', 20)
-            .attr('y', 10)
+            .style('font-size', '14px')
+            .attr('x', 30)
+            .attr('y', 15)
         infog.append('text')
             .text(function (d) {
                 return d.detail;
             })
             .style('text-anchor', 'middle')
             .style('alignment-baseline', 'middle')
-            .style('font-size', '11px')
-            .attr('y', 10)
+            .style('font-size', '14px')
+            .attr('y', 15)
             .attr('x', 140)
         infog.append('text')
             .text(function (d) {
@@ -157,8 +178,8 @@ function draw_info() {
             })
             .style('text-anchor', 'middle')
             .style('alignment-baseline', 'middle')
-            .style('font-size', '11px')
-            .attr('y', 10)
+            .style('font-size', '14px')
+            .attr('y', 15)
             .attr('x', 270)
     })
 }
@@ -167,9 +188,9 @@ function set_svg() {
     // console.log('set_svg', window_width);
 
 
-    column_svg = d3.select('div#columns').append('svg')
-        .attr('width', window_width + 'px')
-        .attr('height', '30px');
+    // column_svg = d3.select('div#columns').append('svg')
+    //     .attr('width', window_width + 'px')
+    //     .attr('height', '30px');
 
     project_svg = d3.select('div#project').append('svg')
         .attr('width', function () {
@@ -289,6 +310,17 @@ function set_layout() {
 /*
 ******      READING DATA      ******
  */
+function read_skylines(opt) {
+    switch (opt) {
+        case "NBA":
+            // let skyline_years = ;
+            d3.range(1985, 2016).forEach(function (year) {
+                d3.csv("/static/skyflow/data/skylines/" + year + "_abcdefghijkl.csv").then(function (data) {
+                    console.log(data)
+                });
+            })
+    }
+}
 
 function read_data(opt) {
     d3.csv("/static/skyflow/data/processed/" + opt + ".csv").then(function (data) {
@@ -313,6 +345,7 @@ function read_data(opt) {
                 })
                 break;
             case "NBA":
+                read_skylines("NBA");
                 current_year = 1978;
                 selected_years = [current_year];
                 year_data = d3.range(1978, 2016);
@@ -379,7 +412,7 @@ function read_data(opt) {
         //     }
         //     console.log(tmp_columns)
         // }
-        set_columnsvg();
+        // set_columnsvg();
         // update_selected_column();
         draw_slider();
         for (let i in year_data) {
@@ -429,126 +462,126 @@ function set_progress_bar() {
         .text(function (d) {
             return d;
         });
-    d3.select('div#dataselect').append('svg')
-        .style('display', 'block')
-        .style('float', 'left')
-        .attr('width', (window_width - 145) + 'px')
-        .attr('height', '25px');
-    progress_bar = dataselectdiv.select('svg')
-        .append('g')
-        .attr('transform', function () {
-            return 'translate(' + 70 + ',0)';
-        });
-
-
-    progress_bar.append('rect')
-        .attr('class', 'progress-skyline')
-        .attr('width', (window_width - 240) / 2)
-        .attr('height', 18)
-        .attr('rx', 2)
-        .attr('x', 10)
-        .attr('y', 3)
-        .attr('stroke-width', 1)
-        .attr('stroke', 'silver')
-        .attr('fill', 'transparent');
-    progress_bar.append('rect')
-        .attr('class', 'skyline-bar')
-        .attr('width', 0)
-        .attr('height', 18)
-        .attr('rx', 2)
-        .attr('x', 10)
-        .attr('y', 3)
-        .attr('stroke-width', 1)
-        .attr('stroke', 'silver')
-        .attr('fill', 'silver');
-    progress_bar.append('text')
-        .text('skyline computation progress : not initiated')
-        .attr('class', 'progress-skyline')
-        .attr('width', (window_width - 240) / 2)
-        .attr('height', 18)
-        .attr('x', (window_width - 240) / 4)
-        .attr('y', 17)
-        .style('font-size', '14px')
-        .attr('fill', 'black')
-        .style('text-anchor', 'middle')
-
-
-    progress_bar.append('rect')
-        .attr('class', 'progress-tsne')
-        .attr('width', (window_width - 240) / 2)
-        .attr('height', 18)
-        .attr('rx', 2)
-        .attr('x', 20 + (window_width - 240) / 2)
-        .attr('y', 3)
-        .attr('stroke-width', 1)
-        .attr('stroke', 'silver')
-        .attr('fill', 'transparent');
-
-    progress_bar.append('rect')
-        .attr('class', 'tsne-bar')
-        .attr('width', 0)
-        .attr('height', 18)
-        .attr('rx', 2)
-        .attr('x', 20 + (window_width - 240) / 2)
-        .attr('y', 3)
-        .attr('stroke-width', 1)
-        .attr('stroke', 'silver')
-        .attr('fill', 'silver');
-
-    progress_bar.append('text')
-        .text('t-SNE computation progress : not initiated')
-        .attr('class', 'progress-tsne')
-        .attr('width', (window_width - 240) / 2)
-        .attr('height', 18)
-        .attr('x', (window_width - 240) / 4 + (window_width - 240) / 2)
-        .attr('y', 17)
-        .style('font-size', '14px')
-        .attr('fill', 'black')
-        .style('text-anchor', 'middle')
-
-    progress_bar.append('rect')
-        .attr('id', 'progress')
-        .attr('width', 0)
-        .attr('height', 20)
-        .attr('fill', 'black');
-
-    skyline_cal_btn = dataselectdiv.select('svg')
-        .append('g')
-        .attr('transform', function () {
-            return 'translate(' + 10 + ',0)';
-        })
-        .on('mouseover', function () {
-            d3.select(this).select('rect')
-                .attr('fill', 'grey')
-            d3.select(this).select('text')
-                .attr('fill', 'white')
-        })
-        .on('mouseout', function () {
-            d3.select(this).select('rect')
-                .attr('fill', 'white')
-            d3.select(this).select('text')
-                .attr('fill', 'black')
-        })
-        .on('click', function () {
-            // console.log('start');
-            calculate_skyline();
-        });
-    skyline_cal_btn.append('rect')
-        .attr('width', 60)
-        .attr('height', 18)
-        .attr('rx', 3)
-        .attr('y', 3)
-        .attr('fill', 'white')
-        .attr('stroke', 'grey')
-        .attr('stroke-width', 1);
-    skyline_cal_btn.append('text')
-        .text('Launch')
-        .attr('x', 10)
-        .attr('y', 13)
-        .attr('fill', 'black')
-        .style('font-size', '13px')
-        // .style('font-weight', 'bold')
-        .style('alignment-baseline', 'central');
+    // d3.select('div#dataselect').append('svg')
+    //     .style('display', 'block')
+    //     .style('float', 'left')
+    //     .attr('width', (window_width - 145) + 'px')
+    //     .attr('height', '25px');
+    // progress_bar = dataselectdiv.select('svg')
+    //     .append('g')
+    //     .attr('transform', function () {
+    //         return 'translate(' + 70 + ',0)';
+    //     });
+    //
+    //
+    // progress_bar.append('rect')
+    //     .attr('class', 'progress-skyline')
+    //     .attr('width', (window_width - 240) / 2)
+    //     .attr('height', 18)
+    //     .attr('rx', 2)
+    //     .attr('x', 10)
+    //     .attr('y', 3)
+    //     .attr('stroke-width', 1)
+    //     .attr('stroke', 'silver')
+    //     .attr('fill', 'transparent');
+    // progress_bar.append('rect')
+    //     .attr('class', 'skyline-bar')
+    //     .attr('width', 0)
+    //     .attr('height', 18)
+    //     .attr('rx', 2)
+    //     .attr('x', 10)
+    //     .attr('y', 3)
+    //     .attr('stroke-width', 1)
+    //     .attr('stroke', 'silver')
+    //     .attr('fill', 'silver');
+    // progress_bar.append('text')
+    //     .text('skyline computation progress : not initiated')
+    //     .attr('class', 'progress-skyline')
+    //     .attr('width', (window_width - 240) / 2)
+    //     .attr('height', 18)
+    //     .attr('x', (window_width - 240) / 4)
+    //     .attr('y', 17)
+    //     .style('font-size', '14px')
+    //     .attr('fill', 'black')
+    //     .style('text-anchor', 'middle')
+    //
+    //
+    // progress_bar.append('rect')
+    //     .attr('class', 'progress-tsne')
+    //     .attr('width', (window_width - 240) / 2)
+    //     .attr('height', 18)
+    //     .attr('rx', 2)
+    //     .attr('x', 20 + (window_width - 240) / 2)
+    //     .attr('y', 3)
+    //     .attr('stroke-width', 1)
+    //     .attr('stroke', 'silver')
+    //     .attr('fill', 'transparent');
+    //
+    // progress_bar.append('rect')
+    //     .attr('class', 'tsne-bar')
+    //     .attr('width', 0)
+    //     .attr('height', 18)
+    //     .attr('rx', 2)
+    //     .attr('x', 20 + (window_width - 240) / 2)
+    //     .attr('y', 3)
+    //     .attr('stroke-width', 1)
+    //     .attr('stroke', 'silver')
+    //     .attr('fill', 'silver');
+    //
+    // progress_bar.append('text')
+    //     .text('t-SNE computation progress : not initiated')
+    //     .attr('class', 'progress-tsne')
+    //     .attr('width', (window_width - 240) / 2)
+    //     .attr('height', 18)
+    //     .attr('x', (window_width - 240) / 4 + (window_width - 240) / 2)
+    //     .attr('y', 17)
+    //     .style('font-size', '14px')
+    //     .attr('fill', 'black')
+    //     .style('text-anchor', 'middle')
+    //
+    // progress_bar.append('rect')
+    //     .attr('id', 'progress')
+    //     .attr('width', 0)
+    //     .attr('height', 20)
+    //     .attr('fill', 'black');
+    //
+    // skyline_cal_btn = dataselectdiv.select('svg')
+    //     .append('g')
+    //     .attr('transform', function () {
+    //         return 'translate(' + 10 + ',0)';
+    //     })
+    //     .on('mouseover', function () {
+    //         d3.select(this).select('rect')
+    //             .attr('fill', 'grey')
+    //         d3.select(this).select('text')
+    //             .attr('fill', 'white')
+    //     })
+    //     .on('mouseout', function () {
+    //         d3.select(this).select('rect')
+    //             .attr('fill', 'white')
+    //         d3.select(this).select('text')
+    //             .attr('fill', 'black')
+    //     })
+    //     .on('click', function () {
+    //         // console.log('start');
+    //         calculate_skyline();
+    //     });
+    // skyline_cal_btn.append('rect')
+    //     .attr('width', 60)
+    //     .attr('height', 18)
+    //     .attr('rx', 3)
+    //     .attr('y', 3)
+    //     .attr('fill', 'white')
+    //     .attr('stroke', 'grey')
+    //     .attr('stroke-width', 1);
+    // skyline_cal_btn.append('text')
+    //     .text('Launch')
+    //     .attr('x', 10)
+    //     .attr('y', 13)
+    //     .attr('fill', 'black')
+    //     .style('font-size', '13px')
+    //     // .style('font-weight', 'bold')
+    //     .style('alignment-baseline', 'central');
 }
 
 function set_columnsvg() {
@@ -954,7 +987,6 @@ function redraw_projected_selected_players() {
 function project_points_click(d) {
     let y_i = year_data.indexOf(current_year);
     // console.log(d, i);
-
     d3.selectAll('.point').selectAll('circle')
         .attr('fill', 'white');
     if (selected_players.indexOf(d['PlayerID']) < 0) {
@@ -975,7 +1007,6 @@ function project_points_click(d) {
             });
         }
     } else {
-
         // d3.select(this).selectAll('path')
         //     .attr('stroke', 'silver')
         //     .attr('stroke-width', '0.2px');
@@ -992,7 +1023,6 @@ function project_points_click(d) {
 
 function relocate_project_points() {
     // console.log('update');
-
     d3.select('div#project').select('svg')
         .select('.projectg')
         .selectAll('.point')
@@ -1000,7 +1030,6 @@ function relocate_project_points() {
             return 'translate(' + new_scaleX(d.x) + ',' + new_scaleY(d.y) + ')';
         });
 }
-
 
 function draw_slider() {
     d3.select("div#project_slider").select("svg").selectAll('g').remove();
@@ -1018,17 +1047,14 @@ function draw_slider() {
             draw_project(current_year, yearly_filtered[year_data.indexOf(current_year)])
             draw_detail_projected(year_data.indexOf(current_year))
         });
-
     let slider_g = d3.select("div#project_slider").select("svg")
         .append("g")
         .attr("transform", "translate(30,10)");
-
     slider_g.call(slider);
     slider_g.select('.axis')
         .selectAll('.tick')
         .selectAll('text')
         .attr('fill', 'white');
-
 }
 
 function zoomed() {
@@ -1053,10 +1079,10 @@ function draw_flow() {
     flow_svg = d3.select("div#flow")
         .select('svg')
         .attr('width', function () {
-            return 50 * year_data.length;
+            return 100 * year_data.length;
         })
         .attr('height', project_div.clientWidth);
-    let gap_between_bars = 60;
+    let gap_between_bars = 100;
     let width_of_bars = 15;
     let padding_left = 30;
     let detail_height = 50;
@@ -1383,7 +1409,7 @@ function draw_flow() {
 
         })
     let gap = 5;
-    let padding_between = 0;
+    let padding_between = 10;
     let areaGenerator = d3.area()
         .x(function (d, i) {
             if (d.info === 's')
@@ -1391,9 +1417,9 @@ function draw_flow() {
             else if (d.info === 'ss')
                 return gap_between_bars * (year_data.indexOf(d.year)) + padding_left + padding_between + 5 + 30 * d.x + gap;
             else if (d.info === 'tt')
-                return gap_between_bars * (year_data.indexOf(d.year)) + padding_left + width_of_bars - padding_between - 25 * d.x - gap;
+                return gap_between_bars * (year_data.indexOf(d.year)) + padding_left + width_of_bars - padding_between - 20 * d.x - gap;
             else if (d.info === 't')
-                return gap_between_bars * (year_data.indexOf(d.year)) + padding_left + width_of_bars - padding_between - 25 * d.x;
+                return gap_between_bars * (year_data.indexOf(d.year)) + padding_left + width_of_bars - padding_between - 20 * d.x;
 
         })
         .y0(function (d) {
@@ -1596,7 +1622,7 @@ function draw_list() {
 
     list_head_svg
         .attr('width', d3.max([list_div.clientWidth, 200 + 50 * filter_selected.length]));
-    let default_column = ['Player', 'Flow'];
+    let default_column = ['Name', 'Flow'];
     list_head_svg.selectAll('.header').remove();
     list_head_svg.selectAll('.header')
         .data(default_column.concat(filter_selected))
@@ -1796,7 +1822,7 @@ function draw_filter_mark() {
         .attr('width', d3.max([list_div.clientWidth, 200 + 50 * filter_selected.length]));
     list_head_svg
         .attr('width', d3.max([list_div.clientWidth, 200 + 50 * filter_selected.length]));
-    let default_column = ['Player', 'Flow'];
+    let default_column = ['Name', 'Flow'];
     list_head_svg.selectAll('.header').remove();
     list_head_svg.selectAll('.header')
         .data(default_column.concat(filter_selected))
@@ -1997,11 +2023,13 @@ function filter_set() {
                     .attr('y', 20)
                     .style('font-size', 20);
                 let strictbox = filter_g.append('g')
-                    .attr('transform', 'translate(100, 10)')
+                    .attr('transform', 'translate(300, 10)')
                 strictbox.append('rect')
-                    .attr('width', 50)
+                    .attr('x', 5)
+                    .attr('rx', 2)
+                    .attr('width', 40)
                     .attr('height', 10)
-                    .attr('stroke', 'black')
+                    .attr('stroke', 'grey')
                     .style('fill', 'transparent')
                 strictbox.on('click', function () {
                     if (filter_strict_columns.indexOf(column) < 0) {
@@ -2032,6 +2060,9 @@ function filter_set() {
 
                 })
                 strictbox.append('text')
+                    .attr('y', 8)
+                    .attr('x', 25)
+                    .attr('text-anchor', 'middle')
                     .text('strict')
                 filter_g.append('text')
                     .attr('class', function (d) {
@@ -2239,13 +2270,13 @@ function draw_detail_projected(y_i) {
             return 'attr ' + 'attr-' + columns.indexOf(d);
         })
         .attr('transform', function (d, i) {
-            return 'translate(' + (timeline_year_padding + (timeline_each_width + timeline_gap_width) * i) + ',0)';
+            return 'translate(' + (timeline_year_padding + (timeline_each_width + timeline_gap_width) * i) + ',5)';
         });
     let axis_x = new_details.append('g')
         .attr('class', function (d) {
             return 'axis-x'
         })
-        .attr('transform', 'translate(0,50)');
+        .attr('transform', 'translate(0,0)');
     // let axis_y = new_details.append('g')
     //     .attr('class', function (d) {
     //         console.log(d);
@@ -2255,8 +2286,8 @@ function draw_detail_projected(y_i) {
         let c_i = columns.indexOf(column);
         let arr = yearly_filtered[y_i].map(x => +x[column]);
         // console.log(column, d3.extent(arr));
-        let scaleX = d3.scaleLinear().domain(d3.extent(arr)).range([0, timeline_each_width]);
-        let axis = d3.axisBottom(scaleX).tickValues(d3.extent(arr)).tickFormat(function (d) {
+        let scaleX = d3.scaleLinear().domain(column_extents[column]).range([50, 0]);
+        let axis = d3.axisLeft(scaleX).tickValues(d3.extent(arr)).tickFormat(function (d) {
             if (d >= 1000000)
                 return Math.floor(d / 1000000) + 'M';
             else if (d >= 1000)
@@ -2264,7 +2295,10 @@ function draw_detail_projected(y_i) {
             else
                 return Math.round(d * 1000.0) / 1000.0;
         });
+        let axis2 = d3.axisLeft(scaleX).tickValues(column_extents[column]);
         d3.select('g.attr-' + c_i).select('g.axis-x').call(axis);
+        d3.select('g.attr-' + c_i).append('g').call(axis2.tickSize(-300)
+            .tickFormat(''));
     });
 
     let bars = details.selectAll('rect')
@@ -2306,10 +2340,11 @@ function draw_detail_projected(y_i) {
                 return scaleattr(+d[attr]);
         })
         .attr('fill', function (d) {
-            let attr = d3.select(this.parentNode).datum();
-            if (d['dom_by'] == 0)
-                return SKYLINE_COLOR;
-            else return NON_SKYLINE_COLOR;
+            // let attr = d3.select(this.parentNode).datum();
+            // if (d['dom_by'] == 0)
+            //     return SKYLINE_COLOR;
+            // else return NON_SKYLINE_COLOR;
+            return 'grey';
             // return colorscale(skyline_columns.indexOf(attr))
         })
         .attr('width', function (d, i, j) {
@@ -2419,17 +2454,17 @@ function draw_detailview() {
             return 'attr' + ' attr-' + columns.indexOf(d);
         })
         .attr('transform', function (d, i) {
-            return 'translate(' + (timeline_year_padding + i * (timeline_each_width + timeline_gap_width)) + ',0)';
+            return 'translate(' + (timeline_year_padding + i * (timeline_each_width + timeline_gap_width)) + ',5)';
         });
 
     let axis_x = attrs.append('g')
         .attr('class', function (d) {
             return 'axis-x'
         })
-        .attr('transform', 'translate(0,50)');
+        .attr('transform', 'translate(0,0)');
 
 
-    let old_bars = attrs.selectAll('rect')
+    let old_bars = attrs.selectAll('.bar')
         .data(function (d) {
             let year = d3.select(this.parentNode).datum();
             let y_i = year_data.indexOf(year);
@@ -2439,6 +2474,51 @@ function draw_detailview() {
             });
         });
     old_bars.exit().remove();
+    let sky_bars = attrs.selectAll('.skybar')
+        .data(function (d) {
+            let year = d3.select(this.parentNode).datum();
+            let y_i = year_data.indexOf(year);
+            // console.log(year, y_i, yearly_filtered);
+            return yearly_filtered[y_i].sort(function (a, b) {
+                return a[d] - b[d]
+            });
+        })
+        .enter()
+        .append('rect')
+        .attr('class', 'skybar')
+        .attr('x', function (d, i, j) {
+            return i * (timeline_each_width / j.length);
+        })
+        .attr('y', function (d) {
+            if (d['dom_by'] == 0)
+                return -3;
+            else return 51;
+            // } catch (e) {
+            //     console.log(d, e);
+            // }
+
+        })
+        .attr('height', function (d) {
+            return 3;
+        })
+        .attr('fill', function (d) {
+            // let attr = d3.select(this.parentNode).datum();
+            // if (selected_path_players.length > 0) {
+            //     if (selected_path_players.indexOf(d['Player']) < 0)
+            //         return 'silver';
+            // }
+            // if (filter_selected.length > 0) {
+            //     if (final_filtered_players.indexOf(d['Player']) < 0)
+            //         return 'silver';
+            // }
+            if (d['dom_by'] == 0)
+                return SKYLINE_COLOR;
+            else return NON_SKYLINE_COLOR;
+            // return colorscale(skyline_columns.indexOf(attr))
+        })
+        .attr('width', function (d, i, j) {
+            return (timeline_each_width / j.length);
+        })
     let new_bars = old_bars
         .enter()
         .append('rect');
@@ -2480,9 +2560,10 @@ function draw_detailview() {
             //     if (final_filtered_players.indexOf(d['Player']) < 0)
             //         return 'silver';
             // }
-            if (d['dom_by'] == 0)
-                return 'skyblue';
-            else return 'pink';
+            // if (d['dom_by'] == 0)
+            //     return SKYLINE_COLOR;
+            // else return NON_SKYLINE_COLOR;
+            return 'grey';
             // return colorscale(skyline_columns.indexOf(attr))
         })
         .attr('width', function (d, i, j) {
@@ -2548,8 +2629,11 @@ function draw_detailview() {
             let c_i = columns.indexOf(column);
             let arr = yearly_filtered[y_i].map(x => +x[column]);
             // console.log(column, d3.extent(arr));
-            let scaleX = d3.scaleLinear().domain(d3.extent(arr)).range([0, timeline_each_width]);
-            let axis = d3.axisBottom(scaleX).tickValues(d3.extent(arr)).tickFormat(function (d) {
+            let scaleX = d3.scaleLinear().domain(column_extents[column]).range([50, 0]);
+            // let scaleX = d3.scaleLinear().domain(d3.extent(arr)).range([50, 0]);
+            // console.log()
+            // d3.scaleLinear().domain(column_extents[attr])
+            let axis = d3.axisLeft(scaleX).tickValues(d3.extent(arr)).tickFormat(function (d) {
                 if (d >= 1000000)
                     return Math.floor(d / 1000000) + 'M';
                 else if (d >= 1000)
@@ -2557,8 +2641,11 @@ function draw_detailview() {
                 else
                     return Math.round(d * 1000.0) / 1000.0;
             });
+            let axis2 = d3.axisLeft(scaleX).tickValues(column_extents[column]);
             // console.log('y', timeline_svg.select('.row-' + y).select('.attr-' + c_i), timeline_svg.select('.row-' + y).select('attr-' + c_i).select('g.axis-x'))
             timeline_svg.select('.row-' + y).select('.attr-' + c_i).select('g.axis-x').call(axis);
+            timeline_svg.select('.row-' + y).select('.attr-' + c_i).append('g').call(axis2.tickSize(-300)
+                .tickFormat(''));
         })
     })
 }
