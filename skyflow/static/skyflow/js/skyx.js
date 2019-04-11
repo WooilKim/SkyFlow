@@ -12,9 +12,9 @@ let yearly_playerID = [];
 let project_detail;
 let year_data, dom_data;
 let radius_scale = d3.scaleLinear().range([3, 10]).domain([0, 1]);
-let tsne_scale = d3.scaleLinear().range([0, 450]).domain([-1, 1]);
-let new_scaleX = d3.scaleLinear().range([0, 450]).domain([-1, 1]);
-let new_scaleY = d3.scaleLinear().range([0, 450]).domain([-1, 1]);
+let tsne_scale = d3.scaleLinear().range([0, 450]).domain([-55, 55]);
+let new_scaleX = d3.scaleLinear().range([0, 450]).domain([-55, 55]);
+let new_scaleY = d3.scaleLinear().range([0, 450]).domain([-55, 55]);
 const SKYLINE_COLOR = '#4A6FE3',
     NON_SKYLINE_COLOR = '#D33F6A',
     BENCH_COLOR = 'grey';
@@ -29,9 +29,9 @@ let filter_selected = [];
 let current_year = 1978;
 let selected_years = [];
 let selected_players = [];
-let columnlistfinal = ['PTS', 'AST', 'STL', 'BLK', 'TRB', 'ORB', 'DRB', '3P%', '3P', 'FG%', 'FG', 'G']
+let columnlistfinal = ['PTS', 'AST', 'STL', 'BLK', 'TRB', 'ORB', 'DRB', '3P%', '3P', 'FG%', 'FG', 'G'];
 let selected_columns = ['0', 'Year', 'G', 'ORB%', 'TRB%', 'AST%', 'STL%', 'BLK%', 'TOV%'];
-let skyline_columns = [];
+let skyline_columns = columnlistfinal;
 let yearly_filtered = [];
 let timeline_sorted = [];
 let selected_path_players = [];
@@ -83,10 +83,11 @@ let each_filter_height = 100;
 
 let title_height = 15;
 let slider_div_height = 50;
+let project_button_div_height = 20;
 let project_div_height = project_div_width;
-let flow_div_height = project_div_width;
-let filter_div_height = project_div_width;
-let list_div_height = project_div_width;
+let flow_div_height = project_div_height;
+let filter_div_height = project_div_height;
+let list_div_height = project_div_height;
 let timeline_div_height = d3.max([project_div_height + title_height, window_height - project_div_height - title_height - 35 - 25 - 25 - 15]);
 let info_div_height = d3.max([project_div_height + title_height, window_height - project_div_height - title_height - 35 - 25 - 25 - 15]);
 
@@ -121,20 +122,19 @@ function draw_info() {
         columnfinaldata = [];
         console.log(data);
         for (let i = 0; i < data.length; i++) {
-            console.log(data[i]['column'])
+            console.log(data[i]['column']);
             if (columnlistfinal.indexOf(data[i]['column']) < 0)
                 continue;
             else {
                 columnfinaldata.push(data[i])
             }
-
         }
         console.log(columnfinaldata);
         let infosvg = d3.select('div#info').append('svg')
             .attr('height', function () {
                 return data.length * 30
             })
-            .attr('width', 320)
+            .attr('width', 320);
 
         let infog = infosvg.selectAll('g')
             .data(columnfinaldata)
@@ -162,7 +162,7 @@ function draw_info() {
             .style('alignment-baseline', 'middle')
             .style('font-size', '14px')
             .attr('x', 30)
-            .attr('y', 15)
+            .attr('y', 15);
         infog.append('text')
             .text(function (d) {
                 return d.detail;
@@ -250,8 +250,10 @@ function set_layout() {
     d3.select('div#project_title').style('height', title_height + 'px');
     d3.select('div#project_slider').style('width', project_div_width + 'px');
     d3.select('div#project_slider').style('height', slider_div_height + 'px');
+    d3.select('div#project_buttons').style('width', project_div_width + 'px');
+    d3.select('div#project_buttons').style('height', project_button_div_height + 'px');
     d3.select('div#project').style('width', project_div_width + 'px');
-    d3.select('div#project').style('height', project_div_width - slider_div_height + 'px');
+    d3.select('div#project').style('height', project_div_height - slider_div_height - project_button_div_height + 'px');
     // flow view
     d3.select('div#flow_div').style('width', flow_div_width + 'px');
     d3.select('div#flow_div').style('height', flow_div_height + title_height + 'px');
@@ -310,42 +312,52 @@ function set_layout() {
 /*
 ******      READING DATA      ******
  */
+
+function typeClean(row) {
+    row.id = +row.id;
+    row.Year = +row.Year;
+    row.PTS = +row.PTS;
+    row.AST = +row.AST;
+    row.STL = +row.STL;
+    row.BLK = +row.BLK;
+    row.TRB = +row.TRB;
+    row.ORB = +row.ORB;
+    row.DRB = +row.DRB;
+    row['3P%'] = +row['3P%'];
+    row['3P'] = +row['3P'];
+    row['FG%'] = +row['FG%'];
+    row['FG'] = +row['FG'];
+    row['G'] = +row['G'];
+    row['3P%'] = +row['3P%'];
+    // row.dom = row.dom;
+    // row.dom_by = row.dom_by;
+    row.x = +row.x;
+    row.y = +row.y;
+    return row;
+}
+
 function read_skylines(opt) {
     switch (opt) {
         case "NBA":
             // let skyline_years = ;
-            d3.range(1985, 2016).forEach(function (year) {
-                d3.csv("/static/skyflow/data/skylines/" + year + "_abcdefghijkl.csv").then(function (data) {
-                    console.log(data)
-                });
-            })
+            // d3.range(1985, 2016).forEach(function (year) {
+            // d3.csv("/static/skyflow/data/processed/NBA_fillna_reduced_organized.csv", row => typeClean(row)).then(function (data) {
+            //     console.log(data)
+            // });
+            d3.json("/static/skyflow/data/processed/NBA_fillna_reduced_organized.json", row => typeClean(row)).then(function (data) {
+                console.log(data)
+            });
+        // })
     }
 }
 
 function read_data(opt) {
-    d3.csv("/static/skyflow/data/processed/" + opt + ".csv").then(function (data) {
+    d3.json("/static/skyflow/data/processed/NBA_fillna_reduced_organized.json", row => typeClean(row)).then(function (data) {
         original_dataset = data;
         let tmp = {};
         switch (opt) {
-            case "MLB":
-                current_year = 1985;
-                selected_years = [current_year];
-                year_data = d3.range(1985, 2016);
-                year_date = d3.range(1985, 2016).map(function (d) {
-                    return new Date(d, 1, 1);
-                });
-                original_dataset.forEach(function (p) {
-                    if (Object.keys(tmp).indexOf(p['PlayerID']) < 0) {
-
-                        tmp[p['PlayerID']] = p['PlayerID']
-                    }
-                });
-                Object.keys(tmp).forEach(function (key) {
-                    players.push([key, tmp[key]])
-                })
-                break;
             case "NBA":
-                read_skylines("NBA");
+                // read_skylines("NBA");
                 current_year = 1978;
                 selected_years = [current_year];
                 year_data = d3.range(1978, 2016);
@@ -364,20 +376,20 @@ function read_data(opt) {
                 break;
         }
         year_data.forEach(function (d) {
-            let arr = original_dataset.filter(x => x['Year'] == d)
-            yearly_filtered.push(arr)
-            yearly_playerID.push(arr.map(x => x['PlayerID']))
+            let arr = original_dataset.filter(x => x['Year'] == d);
+            yearly_filtered.push(arr);
+            yearly_playerID.push(arr.map(x => x['PlayerID']));
         });
         // yearly_filtered.forEach(function (y) {
         //     yearly_playerID.push(y.map(x => x[x['PlayerID']]))
         // });
-        columns = original_dataset.columns.slice(6,);
-        filter_columns = original_dataset.columns.slice(7,);
-        filter_columns.splice(0, 0, 'Salary');
+        // columns = original_dataset.columns.slice(6,);
+        filter_columns = columnlistfinal;
+        // filter_columns.splice(0, 0, 'Salary');
         filter_columns.forEach(function (d) {
             column_extents[d] = d3.extent(original_dataset.map(x => +x[d]));
         });
-        column_extents['dominance'] = [0, 0];
+        column_extents['dominance'] = d3.extent(original_dataset.map(x => +x['dom'].length));
         // players = Array.from(new Set(original_dataset.map(x => [x['PlayerID'], x['Player']])));
         // players.forEach(function (d) {
         //     players_filter_dic[d] = {};
@@ -415,6 +427,7 @@ function read_data(opt) {
         // set_columnsvg();
         // update_selected_column();
         draw_slider();
+        draw_project_buttons();
         for (let i in year_data) {
             tsne_calculated.push(0)
         }
@@ -436,7 +449,6 @@ function histogram() {
  */
 function set_progress_bar() {
     let dataselectdiv = d3.select('div#dataselect').style('height', '25px')
-
     let dataset_select = dataselectdiv.append('select')
         .attr('id', 'data-selection')
         .style('width', '130px')
@@ -721,7 +733,6 @@ function draw_project(year, data) {
     new_points.append('g')
         .attr('class', 'detail');
 
-
     new_points.append('g')
         .attr('class', 'pie');
 
@@ -731,9 +742,8 @@ function draw_project(year, data) {
         });
     new_points.append('circle')
         .attr('class', function (d) {
-            return 'circlecenter ' + 'cc-' + d['id'];
+            return 'cc ' + 'cc-' + d['id'];
         });
-
 
     new_points
         .merge(project_points)
@@ -762,19 +772,17 @@ function project(draw_data) {
     // let detail_info = project_points.append('g')
     //     .attr('class', 'detail');
     let innerR = 6;
-    let circles = project_points.select('.circlecenter')
-        .attr('class', function (d) {
-            return 'circlecenter ' + 'cc-' + d['id'];
-        })
+    let circles = project_points.select('.cc')
         .attr('fill', function (d, i) {
-            let tmp = d3.max(yearly_dom[y_i].map(x => x['dom'].length))
-            let tmp2 = d3.max(yearly_dom[y_i].filter(x => x['dom_by'].length > 0).map(x => x['dom'].length))
-            if (yearly_dom[y_i][i]['dom_by'].length === 0) {
+            // let tmp = d3.max(yearly_dom[y_i].map(x => x['dom'].length));
+            // let tmp2 = d3.max(yearly_dom[y_i].filter(x => x['dom_by'].length > 0).map(x => x['dom'].length))
+            if (d['dom_by'].length === 0) {
                 // skyline
-                return skyline_color_scale(yearly_dom[y_i][i]['dom'].length / tmp)
+                console.log(d['dom'].length, column_extents['dominance'][1]);
+                return skyline_color_scale(d['dom'].length / column_extents['dominance'][1])
             } else {
                 //non skyline
-                return nonskyline_color_scale(yearly_dom[y_i][i]['dom'].length / tmp2)
+                return nonskyline_color_scale(d['dom'].length / column_extents['dominance'][1])
             }
             // console.log(i, yearly_dom[y_i][i]);
             // return radius_scale(yearly_dom[y_i][i]['dom'].length / tmp);
@@ -793,9 +801,9 @@ function project(draw_data) {
         });
 
     project_points.select('.round')
-        .attr('class', function (d) {
-            return 'circlecenter ' + 'cc-' + d['id'];
-        })
+    // .attr('class', function (d) {
+    //     return 'circlecenter ' + 'cc-' + d['id'];
+    // })
         .attr('fill', function (d, i) {
             return 'white';
             // console.log(i, yearly_dom[y_i][i]);
@@ -816,7 +824,7 @@ function project(draw_data) {
 
     let pie = d3.pie().sort(null)
         .value(function () {
-            return 100 / skyline_columns.length;
+            return 100 / columnlistfinal.length;
         });
 
     project_points
@@ -842,10 +850,9 @@ function project(draw_data) {
     let pie_charts = project_points.select('.pie')
         .selectAll("path")
         .data(function (d, i) {
-            let pd = pie(skyline_columns.map(x => d[columns[x]]));
+            let pd = pie(columnlistfinal.map(x => d[x]));
             pd.forEach(function (k) {
-                let tmp = d3.max(yearly_dom[y_i].map(x => x['dom'].length))
-                k['inner'] = yearly_dom[y_i][i]['dom'].length / tmp;
+                k['inner'] = 3;
             });
             return pd;
         });
@@ -863,7 +870,7 @@ function project(draw_data) {
         .attr("d", function (d, i) {
             let arc = d3.arc()
                 .outerRadius(function (d) {
-                    return innerR + d3.scaleLinear().domain(column_extents[columns[skyline_columns[i]]]).range([3, 30])(parseFloat(d.data));
+                    return innerR + d3.scaleLinear().domain(column_extents[columnlistfinal[i]]).range([3, 30])(parseFloat(d.data));
                 })
                 .innerRadius(innerR);
             return arc(d);
@@ -1055,6 +1062,45 @@ function draw_slider() {
         .selectAll('.tick')
         .selectAll('text')
         .attr('fill', 'white');
+}
+
+function draw_project_buttons() {
+    let button_svg = d3.select("div#project_buttons").append("svg")
+        .attr('height', project_button_div_height)
+        .attr('width', project_div_width);
+    let pbutton_width = 30;
+    let button_skyline = button_svg.append('g')
+        .attr('id', 'pb_skyline')
+        .attr('class', 'pb')
+
+    button_skyline.append('rect')
+        .attr('fill', 'green')
+
+    let button_nonskyline = button_svg.append('g')
+        .attr('id', 'pb_nonsky')
+        .attr('class', 'pb');
+    button_nonskyline.append('rect')
+        .attr('fill', 'blue');
+
+    let button_selected = button_svg.append('g')
+        .attr('id', 'pb_selected')
+        .attr('class', 'pb');
+
+    button_selected.append('rect')
+        .attr('fill', 'red');
+
+    let button_filtered = button_svg.append('g')
+        .attr('id', 'pb_filtered')
+        .attr('class', 'pb');
+
+    button_filtered.append('rect')
+        .attr('fill', 'yellow');
+
+    button_svg.selectAll('.pb')
+        .select('rect')
+        .attr('width', pbutton_width)
+        .attr('height', 10);
+
 }
 
 function zoomed() {
@@ -2117,8 +2163,8 @@ function filter_set() {
 
 function drawfilter() {
     // filter
-    d3.select('div#filter').selectAll('select').remove()
-    d3.select('div#filter').selectAll('text').remove()
+    d3.select('div#filter').selectAll('select').remove();
+    d3.select('div#filter').selectAll('text').remove();
     let selection = d3.select('div#filter').append('select')
         .attr('id', 'selection')
         .attr('class', 'selectpicker')
@@ -2149,7 +2195,7 @@ function drawfilter() {
     //     .text('Add the filter ')
     //     .style('font-size', '15px');
     selection.append('option')
-        .text('Filter Attribute')
+        .text('Filter Attribute');
     let options = selection.selectAll('.filter-option')
         .data(filter_columns)
         .enter()

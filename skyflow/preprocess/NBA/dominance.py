@@ -1,3 +1,4 @@
+import os, decimal
 import numpy as np
 import csv, math, json, pprint
 from sklearn.manifold import TSNE
@@ -421,6 +422,140 @@ def skyline_all():
             # except ValueError as e:
             #     print(selected_columns)
             #     print(e)
+
+
+def column_reduce():
+    columns = ['Year', 'Player', 'PlayerID', 'PTS', 'AST', 'STL', 'BLK', 'TRB', 'ORB', 'DRB', '3P%', '3P', 'FG%',
+               'FG', 'G']
+    df = pd.read_csv('../../static/skyflow/data/processed/NBA_fillna.csv', sep=',')
+    df = df[columns]
+    df.info()
+    df.index.name = 'id'
+    df.to_csv('../../static/skyflow/data/processed/NBA_fillna_reduced.csv', mode='w')
+
+
+def skyline_final():
+    columns = ['PlayerID', 'PTS', 'AST', 'STL', 'BLK', 'TRB', 'ORB', 'DRB', '3P%', '3P', 'FG%', 'FG', 'G']
+    rows = list()
+    with open('../../static/skyflow/data/processed/NBA_fillna_reduced.csv', 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(row)
+
+    tsnes = list()
+    dom = list()
+    dom_by = list()
+    # for year in range(1978, 1979):
+    for year in range(1978, 2016):
+        # output = list()
+        # adj_matrix = list()
+        year_list = list(filter(lambda x: int(x['Year']) == year, rows))
+        tsne_values = list([float(x[c]) if c.strip() != '' else 0 for c in columns[1:]] for x in year_list)
+        year_values = list([(x[c]) if c.strip() != '' else 0 for c in columns] for x in year_list)
+
+        # print(year, year_values)
+        x = np.array(tsne_values)
+        x_embedded = TSNE(n_components=2).fit_transform(x)
+        # for i, row in enumerate(x_embedded):
+        #     print(float(row[0]), float(row[1]))
+        for emb in x_embedded:
+            tsnes.append([emb[0], emb[1]])
+
+        for d_i, d in enumerate(year_values):
+            # if A is dominated by B :
+            dominance_list = list()
+            dominance_by_list = list()
+            # dominance_list[A].append(B)
+            for j_i, j in enumerate(year_values):
+                # skyline 여러 차원 중에서 한차원이라도 커야함
+                if any([True if float(a) > float(b) else False for a, b in zip(d[1:], j[1:])]) and \
+                        all([True if float(a) >= float(b) else False for a, b in zip(d[1:], j[1:])]):
+                    dominance_list.append((j[0]))
+            for j_i, j in enumerate(year_values):
+                # skyline 여러 차원 중에서 한차원이라도 커야함
+                if any([True if float(a) < float(b) else False for a, b in zip(d[1:], j[1:])]) and \
+                        all([True if float(a) <= float(b) else False for a, b in zip(d[1:], j[1:])]):
+                    dominance_by_list.append((j[0]))
+
+            dom.append(dominance_list)
+            dom_by.append(dominance_by_list)
+            # total.append((dominance_list, dominance_by_list))
+        print(len(tsnes), len(dom), len(dom_by))
+
+    for i, _ in enumerate(dom):
+        rows[i]['dom'] = dom[i]
+        rows[i]['dom_by'] = dom_by[i]
+        rows[i]['x'] = tsnes[i][0]
+        rows[i]['y'] = tsnes[i][1]
+
+    with open('../../static/skyflow/data/processed/NBA_fillna_reduced_organized.csv', 'w') as f:
+        fieldnames = rows[0].keys()
+
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        # for row in rows:
+        writer.writeheader()
+        writer.writerows(rows)
+        # writer.writerow(row)
+    for row in rows:
+        row['id'] = int(row['id'])
+        row['Year'] = int(row['Year'])
+        for key in columns[1:]:
+            row[key] = float(row[key])
+
+    class NumpyEncoder(json.JSONEncoder):
+        """ Special json encoder for numpy types """
+
+        def default(self, obj):
+            if isinstance(obj, (np.int_, np.intc, np.intp, np.int8,
+                                np.int16, np.int32, np.int64, np.uint8,
+                                np.uint16, np.uint32, np.uint64)):
+                return int(obj)
+            elif isinstance(obj, (np.float_, np.float16, np.float32,
+                                  np.float64)):
+                return float(obj)
+            elif isinstance(obj, (np.ndarray,)):  #### This is the fix
+                return obj.tolist()
+            return json.JSONEncoder.default(self, obj)
+
+    with open('../../static/skyflow/data/processed/NBA_fillna_reduced_organized.json', 'w') as f:
+        f.write(json.dumps(rows, cls=NumpyEncoder))
+        f.flush()
+    print(rows)
+
+
+def setNameID():
+    rows = list()
+    with open('../../static/skyflow/data/processed/NBA_fillna_reduced_organized.csv', 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(row)
+
+    names = dict()
+    nameID = 0
+    for row in rows:
+        if row['PlayerID'] not in names:
+            names[row['PlayerID']] = nameID
+            nameID += 1
+    for row in rows:
+        row.update({'NameID': names[row['PlayerID']]})
+        # row['NameID'] = names[row['PlayerID']]
+    with open('../../static/skyflow/data/processed/NBA_fillna_reduced_organized_nameid.csv', 'w') as f:
+        fieldnames = rows[0].keys()
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        # for row in rows:
+        writer.writeheader()
+        writer.writerows(rows)
+    # print(rows)
+    # with open('./skylines/' + str(year) + '_' + filename + '.csv', 'w') as f:
+    #     writer = csv.writer(f)
+    #     writer.writerows(adj_matrix)
+
+    # with open('./skylines/' + year + '_' + filename + '.json', 'w') as f:
+    #     f.write(json.dumps(full_data, indent=4))
+    #     f.flush()
+    # except ValueError as e:
+    #     print(selected_columns)
+    #     print(e)
 
 
 def powerset(seq):
@@ -1196,6 +1331,26 @@ def nba_setting():
     print(data)
 
 
+def append_column():
+    dir = 'skylines'
+    for root, dirs, files in os.walk(dir):
+        # print(root)
+        # print(dirs)
+        print(files)
+        for file in files:
+            with open(dir + '/' + file, 'r') as f:
+                lines = f.readlines()
+                column_line = 'x,y,'
+                for i in range(len(lines) - 1):
+                    column_line = column_line + str(i) + ','
+                column_line = column_line + str(len(lines) - 1)
+                with open('skylines_column/' + file, 'w') as fw:
+                    fw.write(column_line + '\n')
+                    for line in lines:
+                        fw.write(line)
+                    fw.flush()
+
+
 if __name__ == '__main__':
     # rows = read('../data/NBA_redundancy_erased.csv')
     # column_needed = ['Year', 'Player', 'Player ID', 'Tm', 'ORB%', 'DRB%', 'AST%', 'STL%', 'BLK%', 'Shot%']
@@ -1234,5 +1389,9 @@ if __name__ == '__main__':
     # selected_skyline([1, 4, 6, 7])
     # baseball_redundant()
     # nba_setting()
-    skyline_all()
+    # skyline_all()
     # test()
+    # append_column()
+    # column_reduce()
+    skyline_final()
+    # setNameID()

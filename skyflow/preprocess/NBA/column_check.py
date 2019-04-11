@@ -36,14 +36,15 @@ def write_min_max():
 
 
 def get_hist_data():
-    df = pd.read_csv('../../static/skyflow/data/processed/NBA.csv')
-    columns = list(df.columns)
+    columns = ['PTS', 'AST', 'STL', 'BLK', 'TRB', 'ORB', 'DRB', '3P%', '3P', 'FG%', 'FG', 'G']
+    df = pd.read_csv('../../static/skyflow/data/processed/NBA_fillna.csv')
+
     print(columns)
     years = df['Year'].unique()
     print(years)
 
     real_result = dict()
-    for c in columns[6:]:
+    for c in columns:
         real_result[c] = dict()
         print(c)
         print(np.min(df[c]), np.max(df[c]))
@@ -127,6 +128,6 @@ def check_cardinality():
 if __name__ == '__main__':
     # check()
     # check_cardinality()
-    # get_hist_data()
-    write_min_max()
+    get_hist_data()
+    # write_min_max()
     pass
