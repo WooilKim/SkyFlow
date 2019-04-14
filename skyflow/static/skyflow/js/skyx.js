@@ -59,6 +59,7 @@ let list_svg;
 let players = [];
 let players_filter_dic = {};
 let final_filtered_players = [];
+let coord_data = {};
 let skyline_color_scale = d3.scaleLinear()
         .domain([0, 1])
         .range([d3.rgb('#4A6FE3'), d3.rgb('#DADEEE')])
@@ -83,7 +84,7 @@ let each_filter_height = 100;
 
 let title_height = 15;
 let slider_div_height = 50;
-let project_button_div_height = 20;
+let project_button_div_height = 40;
 let project_div_height = project_div_width;
 let flow_div_height = project_div_height;
 let filter_div_height = project_div_height;
@@ -101,6 +102,13 @@ let progress_bar;
 let flow_label_width = 30;
 let flow_detail_height = 20;
 let filter_ranges = {};
+
+const BUTTON_INVISIBLE = 2;
+const BUTTON_BLURRED = 1;
+const BUTTON_VISIBLE = 0;
+
+let project_button_data = {'skyline': BUTTON_VISIBLE, 'non-skyline': BUTTON_VISIBLE, 'filtered': BUTTON_VISIBLE,}
+
 default_setting();
 
 function default_setting() {
@@ -289,7 +297,7 @@ function set_layout() {
     d3.select('div#timeline_title').style('width', timeline_div_width + 'px');
     d3.select('div#timeline_title').style('height', title_height + 'px');
     // d3.select('div#timeline_year').style('width', timeline_div_width + 'px');
-    d3.select('div#timeline_year').style('height', timeline_div_height - title_height + 'px');
+    d3.select('div#timeline_attr').style('height', timeline_div_height - title_height + 'px');
     d3.select('div#projected_year').style('width', 100 + 'px');
     d3.select('div#projected_year').style('height', 100 + 'px');
     d3.select('div#timeline_head').style('height', 30 + 'px');
@@ -372,7 +380,6 @@ function read_data(opt) {
                 Object.keys(tmp).forEach(function (key) {
                     players.push([key, tmp[key]])
                 });
-
                 break;
         }
         year_data.forEach(function (d) {
@@ -390,6 +397,21 @@ function read_data(opt) {
             column_extents[d] = d3.extent(original_dataset.map(x => +x[d]));
         });
         column_extents['dominance'] = d3.extent(original_dataset.map(x => +x['dom'].length));
+
+        original_dataset.forEach(function (p) {
+            if (!(p['PlayerID'] in coord_data)) {
+                coord_data[p['PlayerID']] = {};
+                columnlistfinal.forEach(function (c) {
+                    coord_data[p['PlayerID']][c] = [];
+                    coord_data[p['PlayerID']][c].push([p['Year'], p[c]]);
+                })
+            } else {
+                columnlistfinal.forEach(function (c) {
+                    // coord_data[p['PlayerID']][c] = [];
+                    coord_data[p['PlayerID']][c].push([p['Year'], p[c]]);
+                })
+            }
+        })
         // players = Array.from(new Set(original_dataset.map(x => [x['PlayerID'], x['Player']])));
         // players.forEach(function (d) {
         //     players_filter_dic[d] = {};
@@ -432,7 +454,9 @@ function read_data(opt) {
             tsne_calculated.push(0)
         }
         histogram();
-
+        draw_flow();
+        draw_list();
+        draw_parallel_coordinates();
     });
 }
 
@@ -1069,38 +1093,48 @@ function draw_project_buttons() {
         .attr('height', project_button_div_height)
         .attr('width', project_div_width);
     let pbutton_width = 30;
+
     let button_skyline = button_svg.append('g')
         .attr('id', 'pb_skyline')
-        .attr('class', 'pb')
+        .attr('class', 'pb');
 
     button_skyline.append('rect')
-        .attr('fill', 'green')
-
-    let button_nonskyline = button_svg.append('g')
-        .attr('id', 'pb_nonsky')
-        .attr('class', 'pb');
-    button_nonskyline.append('rect')
         .attr('fill', 'blue');
+    button_skyline.append('rect')
+        .attr('fill', 'red');
 
     let button_selected = button_svg.append('g')
         .attr('id', 'pb_selected')
         .attr('class', 'pb');
 
     button_selected.append('rect')
+        .attr('fill', 'blue');
+    button_selected.append('rect')
         .attr('fill', 'red');
 
     let button_filtered = button_svg.append('g')
         .attr('id', 'pb_filtered')
         .attr('class', 'pb');
-
+    // .attr('visibility', 'hidden');
     button_filtered.append('rect')
-        .attr('fill', 'yellow');
+        .attr('fill', 'blue');
+    button_filtered.append('rect')
+        .attr('fill', 'red');
+
+    let button_dominant = button_svg.append('g')
+        .attr('id', 'pb_dominant')
+        .attr('class', 'pb');
+    // .attr('visibility', 'hidden');
+    button_dominant.append('rect')
+        .attr('fill', 'blue');
+    button_dominant.append('rect')
+        .attr('fill', 'red');
 
     button_svg.selectAll('.pb')
+        .attr('transform', (d, i) => 'translate(' + (i * pbutton_width) + ',0)')
         .select('rect')
         .attr('width', pbutton_width)
         .attr('height', 10);
-
 }
 
 function zoomed() {
@@ -1147,7 +1181,7 @@ function draw_flow() {
         sky_filtered.push({});
         sky_filtered[y_i]['skyline'] = [];
         sky_filtered[y_i]['non-skyline'] = [];
-        yearly_dom[y_i].forEach(function (d, i) {
+        yearly_filtered[y_i].forEach(function (d, i) {
             // console.log(y_i, d, i);
             if (d.dom_by.length === 0)
                 sky_filtered[y_i]['skyline'].push(yearly_filtered[y_i][i]['PlayerID']);
@@ -2256,6 +2290,92 @@ function draw_filter_list() {
 
 // draw_flow();
 
+function draw_parallel_coordinates() {
+
+
+    let each_attr_height = 200,
+        each_year_width = 150;
+    timeline_svg
+        .attr('width', each_year_width * year_data.length)
+        .attr('height', each_attr_height * columnlistfinal.length);
+    let attr_label = d3.select('div#timeline_attr').append('svg')
+        .attr('height', 2000)
+        .selectAll('g')
+        .data(columnlistfinal)
+        .enter()
+        .append('g')
+        .attr('transform', (d, i) => 'translate(0,' + (i * each_attr_height) + ')');
+
+    attr_label.append('text')
+        .text((d) => d)
+        .attr('y', 10)
+        .attr('x', 10);
+    let year_label = timeline_head_svg
+        .selectAll('g')
+        .data(year_data)
+        .enter()
+        .append('g')
+        .attr('transform', (d, i) => 'translate(' + (i * each_year_width) + ',0)');
+
+    year_label.append('text')
+        .text((d) => d)
+        .attr('y', 10)
+        .attr('x', 10);
+
+    let timeline_rows = timeline_svg.selectAll('g')
+        .data(columnlistfinal)
+        .enter()
+        .append('g')
+        .attr('class', d => 'rowattr attr-' + d)
+        .attr('transform', (d, i) => 'translate(0,' + (i * each_attr_height) + ')');
+
+    timeline_rows.selectAll('.lines')
+        .data(columnlistfinal)
+        .enter()
+        .append('g')
+        .attr('class', d => 'lines lines-' + d)
+        .attr('transform', (d, i) => 'translate(0,' + (i * each_attr_height) + ')');
+
+
+    timeline_rows.selectAll('.yearaxis')
+        .data(year_data)
+        .enter()
+        .append('g')
+        .attr('class', d => 'yearaxis year-' + d)
+        .attr('transform', (d, i) => 'translate(' + (i * each_year_width) + ',0)');
+
+    // axis setting
+    columnlistfinal.forEach(function (c) {
+        let attrscale = d3.scaleLinear().domain(column_extents[c]).range([each_attr_height, 0]);
+        d3.select('.attr-' + c).selectAll('g.yearaxis')
+            .call(d3.axisRight(attrscale))
+
+        let line = d3.line()
+            .x(function (d) {
+                return year_data.indexOf(d[0]) * each_year_width;
+            })
+            .y(function (d) {
+                return attrscale(d[1])
+            });
+        let path_data = [];
+        Object.keys(coord_data).forEach(function (p) {
+            let tmp = coord_data[p][c].slice();
+            tmp[0].push(p);
+            path_data.push(tmp);
+        })
+        console.log(path_data);
+        d3.select('.lines-' + c)
+            .selectAll('path')
+            .data(path_data)
+            .enter()
+            .append('path')
+            .attr('fill', 'transparent')
+            .attr('stroke', 'grey')
+            .attr('d', line);
+    })
+
+
+}
 
 // timeline
 function draw_detail_header() {

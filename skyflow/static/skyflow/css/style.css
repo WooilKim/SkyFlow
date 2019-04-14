@@ -223,9 +223,10 @@ div.title > * {
     overflow: scroll;
 }
 
-#timeline_year {
+#timeline_attr {
     float: left;
     width: 100px;
+    overflow: scroll;
 }
 
 #timeline_main {
