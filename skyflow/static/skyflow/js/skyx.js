@@ -91,6 +91,7 @@ let filter_div_height = project_div_height;
 let list_div_height = project_div_height;
 let timeline_div_height = d3.max([project_div_height + title_height, window_height - project_div_height - title_height - 35 - 25 - 25 - 15]);
 let info_div_height = d3.max([project_div_height + title_height, window_height - project_div_height - title_height - 35 - 25 - 25 - 15]);
+let info_height;
 
 let timeline_head_height = 30;
 let timeline_each_height = 70,
@@ -122,22 +123,25 @@ function default_setting() {
 
 }
 
-draw_info();
 
 function draw_info() {
+
     d3.csv("/static/skyflow/data/processed/NBA_columns_extent.csv").then(function (data) {
         // console.log(data);
-        columnfinaldata = [];
-        console.log(data);
-        for (let i = 0; i < data.length; i++) {
-            console.log(data[i]['column']);
-            if (columnlistfinal.indexOf(data[i]['column']) < 0)
-                continue;
-            else {
-                columnfinaldata.push(data[i])
-            }
-        }
-        console.log(columnfinaldata);
+        // columnfinaldata = [];
+        // console.log(data);
+        // columnlistfinal.forEach(function (d) {
+        //
+        // })
+        // for (let i = 0; i < data.length; i++) {
+        //     console.log(data[i]['column']);
+        //     if (columnlistfinal.indexOf(data[i]['column']) < 0)
+        //         continue;
+        //     else {
+        //         columnfinaldata.push(data[i])
+        //     }
+        // }
+        // console.log(columnfinaldata);
         let infosvg = d3.select('div#info').append('svg')
             .attr('height', function () {
                 return data.length * 30
@@ -145,19 +149,19 @@ function draw_info() {
             .attr('width', 320);
 
         let infog = infosvg.selectAll('g')
-            .data(columnfinaldata)
+            .data(columnlistfinal)
             .enter()
             .append('g')
             .attr('transform', function (d, i) {
-                return 'translate(0,' + i * 30 + ')';
+                return 'translate(0,' + (i * info_height / columnlistfinal.length) + ')';
             });
         infog.append('rect')
             .attr('class', 'row')
             .attr('width', 320)
-            .attr('height', columnfinaldata.length * 30)
+            .attr('height', info_height / columnlistfinal.length)
         infog.append('rect')
             .attr('width', 10)
-            .attr('height', columnfinaldata.length * 30)
+            .attr('height', info_height / columnlistfinal.length)
             .attr('fill', function (d, i) {
                 return colorscale(i);
             })
@@ -182,7 +186,7 @@ function draw_info() {
             .attr('x', 140)
         infog.append('text')
             .text(function (d) {
-                return d.min + ' ~ ' + d.max;
+                return column_extents[d][0] + ' ~ ' + column_extents[d][1];
             })
             .style('text-anchor', 'middle')
             .style('alignment-baseline', 'middle')
@@ -313,7 +317,8 @@ function set_layout() {
     d3.select('div#info_title').style('width', info_div_width + 'px');
     d3.select('div#info_title').style('height', title_height + 'px');
     d3.select('div#info').style('width', info_div_width - 2 + 'px');
-    d3.select('div#info').style('height', info_div_height - title_height - 2 + 'px');
+    info_height = info_div_height - title_height - 2;
+    d3.select('div#info').style('height', +info_height + 'px');
 }
 
 
@@ -457,6 +462,7 @@ function read_data(opt) {
         draw_flow();
         draw_list();
         draw_parallel_coordinates();
+        draw_info();
     });
 }
 
@@ -2326,14 +2332,14 @@ function draw_parallel_coordinates() {
         .data(columnlistfinal)
         .enter()
         .append('g')
-        .attr('class', d => 'rowattr attr-' + d)
+        .attr('class', d => 'rowattr attr-' + columnlistfinal.indexOf(d))
         .attr('transform', (d, i) => 'translate(0,' + (i * each_attr_height) + ')');
 
     timeline_rows.selectAll('.lines')
         .data(columnlistfinal)
         .enter()
         .append('g')
-        .attr('class', d => 'lines lines-' + d)
+        .attr('class', d => 'lines lines-' + columnlistfinal.indexOf(d))
         .attr('transform', (d, i) => 'translate(0,' + (i * each_attr_height) + ')');
 
 
@@ -2347,7 +2353,7 @@ function draw_parallel_coordinates() {
     // axis setting
     columnlistfinal.forEach(function (c) {
         let attrscale = d3.scaleLinear().domain(column_extents[c]).range([each_attr_height, 0]);
-        d3.select('.attr-' + c).selectAll('g.yearaxis')
+        d3.select('.attr-' + columnlistfinal.indexOf(c)).selectAll('g.yearaxis')
             .call(d3.axisRight(attrscale))
 
         let line = d3.line()
@@ -2363,12 +2369,13 @@ function draw_parallel_coordinates() {
             tmp[0].push(p);
             path_data.push(tmp);
         })
-        console.log(path_data);
-        d3.select('.lines-' + c)
+        // console.log(path_data);
+        d3.select('.lines-' + columnlistfinal.indexOf(c))
             .selectAll('path')
             .data(path_data)
             .enter()
             .append('path')
+            .attr('class', d => 'line-' + d[0][2])
             .attr('fill', 'transparent')
             .attr('stroke', 'grey')
             .attr('d', line);

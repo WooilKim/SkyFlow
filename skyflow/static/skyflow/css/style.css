@@ -275,7 +275,7 @@ div.title > * {
 }
 
 #info {
-    overflow: scroll;
+    /*overflow: scroll;*/
 }
 
 .links line {
