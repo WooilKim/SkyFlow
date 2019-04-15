@@ -92,7 +92,7 @@ let list_div_height = project_div_height;
 let timeline_div_height = d3.max([project_div_height + title_height, window_height - project_div_height - title_height - 35 - 25 - 25 - 15]);
 let info_div_height = d3.max([project_div_height + title_height, window_height - project_div_height - title_height - 35 - 25 - 25 - 15]);
 let info_height;
-
+let info_each_height;
 let timeline_head_height = 30;
 let timeline_each_height = 70,
     timeline_each_width = 300,
@@ -103,10 +103,12 @@ let progress_bar;
 let flow_label_width = 30;
 let flow_detail_height = 20;
 let filter_ranges = {};
-
+let dragging = {};
+let column_orders = columnlistfinal.slice();
 const BUTTON_INVISIBLE = 2;
 const BUTTON_BLURRED = 1;
 const BUTTON_VISIBLE = 0;
+
 
 let project_button_data = {'skyline': BUTTON_VISIBLE, 'non-skyline': BUTTON_VISIBLE, 'filtered': BUTTON_VISIBLE,}
 
@@ -127,12 +129,21 @@ function default_setting() {
 function draw_info() {
 
     d3.csv("/static/skyflow/data/processed/NBA_columns_extent.csv").then(function (data) {
+        info_each_height = info_height / columnlistfinal.length;
+        console.log('detail', data);
         // console.log(data);
         // columnfinaldata = [];
         // console.log(data);
-        // columnlistfinal.forEach(function (d) {
-        //
-        // })
+        let column_details = {};
+        columnlistfinal.forEach(function (c) {
+            data.forEach(function (d) {
+                if (d.column === c) {
+                    column_details[c] = d.detail;
+                }
+            })
+        })
+
+        console.log(column_details);
         // for (let i = 0; i < data.length; i++) {
         //     console.log(data[i]['column']);
         //     if (columnlistfinal.indexOf(data[i]['column']) < 0)
@@ -148,41 +159,68 @@ function draw_info() {
             })
             .attr('width', 320);
 
+        let info_drag = d3.drag();
         let infog = infosvg.selectAll('g')
-            .data(columnlistfinal)
+            .data(column_orders)
             .enter()
             .append('g')
+            .attr('class', 'inforow')
             .attr('transform', function (d, i) {
-                return 'translate(0,' + (i * info_height / columnlistfinal.length) + ')';
-            });
+                return 'translate(0,' + (i * info_each_height) + ')';
+            })
+            .call(
+                info_drag
+                    .on('start', function (d) {
+                        dragging[d] = d3.event.y;
+                        d3.select(this).raise();
+                    })
+                    .on('drag', function (d) {
+                        console.log(d3.event.y);
+                        dragging[d] = d3.event.y;
+                        d3.select(this).attr('transform', 'translate(0,' + d3.event.y + ')');
+                        column_orders.sort(function (a, b) {
+                            return position(a) - position(b);
+                        });
+                        console.log(column_orders)
+                        d3.selectAll(".inforow").attr("transform", function (d, i) {
+                            return "translate(0," + position(d) + ")";
+                        });
+                    })
+                    .on('end', function (d) {
+                        delete dragging[d];
+                        d3.selectAll(".inforow").attr("transform", function (d, i) {
+                            return "translate(0," + position(d) + ")";
+                        });
+                    })
+            );
         infog.append('rect')
             .attr('class', 'row')
             .attr('width', 320)
-            .attr('height', info_height / columnlistfinal.length)
+            .attr('height', info_each_height);
         infog.append('rect')
             .attr('width', 10)
-            .attr('height', info_height / columnlistfinal.length)
+            .attr('height', info_each_height)
             .attr('fill', function (d, i) {
                 return colorscale(i);
             })
             .style('opacity', 0.9)
         infog.append('text')
             .text(function (d) {
-                return d.column;
+                return d;
             })
             .style('text-anchor', 'middle')
             .style('alignment-baseline', 'middle')
             .style('font-size', '14px')
             .attr('x', 30)
-            .attr('y', 15);
+            .attr('y', info_each_height / 2);
         infog.append('text')
             .text(function (d) {
-                return d.detail;
+                return column_details[d];
             })
             .style('text-anchor', 'middle')
             .style('alignment-baseline', 'middle')
             .style('font-size', '14px')
-            .attr('y', 15)
+            .attr('y', info_each_height / 2)
             .attr('x', 140)
         infog.append('text')
             .text(function (d) {
@@ -191,7 +229,7 @@ function draw_info() {
             .style('text-anchor', 'middle')
             .style('alignment-baseline', 'middle')
             .style('font-size', '14px')
-            .attr('y', 15)
+            .attr('y', info_each_height / 2)
             .attr('x', 270)
     })
 }
@@ -413,6 +451,9 @@ function read_data(opt) {
             } else {
                 columnlistfinal.forEach(function (c) {
                     // coord_data[p['PlayerID']][c] = [];
+                    if (coord_data[p['PlayerID']][c][coord_data[p['PlayerID']][c].length - 1][0] !== p['Year'] - 1) {
+                        coord_data[p['PlayerID']][c].push(null);
+                    }
                     coord_data[p['PlayerID']][c].push([p['Year'], p[c]]);
                 })
             }
@@ -915,7 +956,7 @@ function project_points_mouseover(player_id, player_name) {
         return;
     }
 
-    project_svg.select('g').select('.point-' + player_id).moveToFront();
+    project_svg.select('g').select('.point-' + player_id).raise();
 
     project_svg.select('g').select('.point-' + player_id).select('.pie')
         .attr('transform', function () {
@@ -2297,8 +2338,6 @@ function draw_filter_list() {
 // draw_flow();
 
 function draw_parallel_coordinates() {
-
-
     let each_attr_height = 200,
         each_year_width = 150;
     timeline_svg
@@ -2357,6 +2396,9 @@ function draw_parallel_coordinates() {
             .call(d3.axisRight(attrscale))
 
         let line = d3.line()
+            .defined(function (d) {
+                return d;
+            })
             .x(function (d) {
                 return year_data.indexOf(d[0]) * each_year_width;
             })
@@ -2368,7 +2410,7 @@ function draw_parallel_coordinates() {
             let tmp = coord_data[p][c].slice();
             tmp[0].push(p);
             path_data.push(tmp);
-        })
+        });
         // console.log(path_data);
         d3.select('.lines-' + columnlistfinal.indexOf(c))
             .selectAll('path')
@@ -2378,7 +2420,29 @@ function draw_parallel_coordinates() {
             .attr('class', d => 'line-' + d[0][2])
             .attr('fill', 'transparent')
             .attr('stroke', 'grey')
+            .style('opacity', 0.8)
             .attr('d', line);
+        let circle_data = [];
+        path_data.forEach(function (d) {
+            for (i in d) {
+                // console.log(i, d);
+                if (d[i])
+                    circle_data.push(d[i]);
+            }
+
+        })
+        // console.log(circle_data)
+        d3.select('.lines-' + columnlistfinal.indexOf(c))
+            .selectAll(".dot")
+            .data(circle_data)
+            .enter()
+            .append("circle")
+            .attr("class", "dot")
+            .attr('stroke', 'black')
+            .attr("cx", line.x())
+            .attr("cy", line.y())
+            .attr('fill', 'transparent')
+            .attr("r", 3.5);
     })
 
 
@@ -3310,3 +3374,8 @@ d3.selection.prototype.moveToBack = function () {
         }
     });
 };
+
+function position(column) {
+    let pos = dragging[column];
+    return pos == null ? column_orders.indexOf(column) * info_each_height : pos;
+}
