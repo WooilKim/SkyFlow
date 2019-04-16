@@ -821,6 +821,18 @@ function draw_project(year, data) {
         .attr('class', function (d, i) {
             return 'point year-' + yearly_filtered[y_i][i]['Year'] + ' point-' + yearly_filtered[y_i][i]['PlayerID'] + ' pointid-' + yearly_filtered[y_i][i]['id'];
         })
+        .classed('point-skyline', function (d) {
+            if (d.dom_by.length === 0)
+                return true;
+            else
+                return false;
+        })
+        .classed('point-nonskyline', function (d) {
+            if (d.dom_by.length === 0)
+                return false;
+            else
+                return true;
+        })
         .attr('transform', function (d) {
             return 'translate(' + new_scaleX(d.x) + ',' + new_scaleY(d.y) + ')';
         });
@@ -1028,36 +1040,46 @@ function redraw_projected_selected_players() {
         .style('stroke', 'white');
     project_svg.select('g').selectAll('.point').select('.circle')
         .style('stroke', 'white');
+    project_svg.select('g').selectAll('.point-selected').classed('point-selected', false);
+    project_svg.select('g').selectAll('.point-selected').classed('point-dominating', false);
+    project_svg.select('g').selectAll('.point-selected').classed('point-dominated', false);
     let yd_dom = [];
     let yd_domby = [];
-    if (selected_players.length > 0) {
-        yd_dom = yearly_dom[y_i].map(x => x.id);
-        yd_domby = yearly_dom[y_i].map(x => x.id);
-    }
+    // if (selected_players.length > 0) {
+    //     yd_dom = yearly_dom[y_i].map(x => x.id);
+    //     yd_domby = yearly_dom[y_i].map(x => x.id);
+    // }
     // let yd = yearly_dom[y_i].filter(x => x.id == p);
 
     selected_players.forEach(function (p, p_i) {
         // project_svg.select('g').select('.point-' + p).classed('selected', true);
+        project_svg.select('g').select('.point-' + p).classed('point-selected', true);
         project_svg.select('g').select('.point-' + p).select('.pie').selectAll('path')
         // .style('stroke-width', '2px')
             .style('stroke', selected_player_colorscale(p_i));
-        let selected_p_yd = yearly_dom[y_i].filter(x => x.id == p)[0].dom.map(x => x.PlayerID)
-        let selected_p_ydby = yearly_dom[y_i].filter(x => x.id == p)[0].dom_by.map(x => x.PlayerID)
-        console.log(selected_p_yd);
-        yd_dom = yd_dom.filter(x => selected_p_yd.indexOf(x) > -1)
-        yd_domby = yd_domby.filter(x => selected_p_ydby.indexOf(x) > -1)
+        let selected_p_yd = project_svg.select('g').select('.point-' + p).datum().dom;
+        let selected_p_ydby = project_svg.select('g').select('.point-' + p).datum().dom_by;
+        // console.log(selected_p_yd);
+        if (p_i === 0) {
+            yd_dom = selected_p_yd.slice();
+            yd_domby = selected_p_ydby.slice();
+        } else {
+            yd_dom = yd_dom.filter(x => selected_p_yd.indexOf(x) > -1);
+            yd_domby = yd_domby.filter(x => selected_p_ydby.indexOf(x) > -1);
+        }
 
     });
-
     console.log(yd_dom, yd_domby);
     yd_dom.forEach(function (d) {
         d3.select('.point-' + d).select('circle')
-            .style('stroke', NON_SKYLINE_COLOR)
+            .style('stroke', NON_SKYLINE_COLOR);
+        d3.select('.point-' + d).classed('point-dominating', true)
     });
 
     yd_domby.forEach(function (d) {
         d3.select('.point-' + d).select('circle')
-            .style('stroke', SKYLINE_COLOR)
+            .style('stroke', SKYLINE_COLOR);
+        d3.select('.point-' + d).classed('point-dominated', true)
     });
 
 }
@@ -1202,7 +1224,6 @@ function zoomed() {
  */
 function draw_flow() {
     let flow_height = project_div.clientWidth - 30;
-
     flow_svg = d3.select("div#flow")
         .select('svg')
         .attr('width', function () {
@@ -1296,7 +1317,7 @@ function draw_flow() {
         .text(function (d) {
             return d;
         })
-        .style('text-anchor', 'middle')
+        .style('text-anchor', 'middle');
     // .style('baseline-alignment', 'middle')
     // .style('text-anchor', 'middle')
     // .attr('y', (project_div.clientWidth - title_div_height) / keys.length/2);
@@ -1335,7 +1356,7 @@ function draw_flow() {
         .attr('transform', 'translate(' + 5 + ',20)')
         .attr('class', function (d, i) {
             return 'stack stack-' + keys[i];
-        })
+        });
 
     // console.log('range', project_div.clientWidth, d3.max(yearly_filtered.map(x => x.length)));
 
@@ -1417,6 +1438,7 @@ function draw_flow() {
     });
     let y = d3.scaleLinear()
         .range([0, project_div.clientWidth - 30]).domain([0, d3.max(sky_filtered_length.map(x => x.total))]);
+
 
     yearG.selectAll('rect')
         .data(function (d) {
@@ -1739,6 +1761,10 @@ function update_flow_detail(data) {
             return d + ' : ' + data[d];
         });
 
+}
+
+function draw_selected_flow() {
+    
 }
 
 /*
@@ -3033,45 +3059,45 @@ let detailcolumnDiv = document.getElementById('timeline_head');
 let detailprojectedDiv = document.getElementById('timeline_projected');
 let detailcontentDiv = document.getElementById('timeline');
 let selectedyearDiv = document.getElementById('selected_year');
-
-detailcolumnDiv.onscroll = function () {
-    if (!isSyncingDetailColumnScroll) {
-        isSyncingDetailContentScroll = true;
-        isSyncingDetailProjectedScroll = true;
-        detailcontentDiv.scrollLeft = this.scrollLeft;
-        detailprojectedDiv.scrollLeft = this.scrollLeft;
-    }
-    isSyncingDetailColumnScroll = false;
-}
-detailprojectedDiv.onscroll = function () {
-    if (!isSyncingDetailProjectedScroll) {
-        isSyncingDetailContentScroll = true;
-        isSyncingDetailColumnScroll = true;
-        detailcontentDiv.scrollLeft = this.scrollLeft;
-        detailcolumnDiv.scrollLeft = this.scrollLeft;
-    }
-    isSyncingDetailProjectedScroll = false;
-}
-detailcontentDiv.onscroll = function () {
-    if (!isSyncingDetailContentScroll) {
-        isSyncingDetailColumnScroll = true;
-        isSyncingDetailProjectedScroll = true;
-        isSyncingDetailYearScroll = true;
-        detailcolumnDiv.scrollLeft = this.scrollLeft;
-        detailprojectedDiv.scrollLeft = this.scrollLeft;
-        selectedyearDiv.scrollTop = this.scrollTop;
-        selectedyearDiv.scrollBottom = this.scrollBottom;
-    }
-    isSyncingDetailContentScroll = false;
-}
-selectedyearDiv.onscroll = function () {
-    if (!isSyncingDetailYearScroll) {
-        isSyncingDetailColumnScroll = true;
-        detailcontentDiv.scrollTop = this.scrollTop;
-        detailcontentDiv.scrollBottom = this.scrollBottom;
-    }
-    isSyncingDetailYearScroll = false;
-}
+//
+// detailcolumnDiv.onscroll = function () {
+//     if (!isSyncingDetailColumnScroll) {
+//         isSyncingDetailContentScroll = true;
+//         isSyncingDetailProjectedScroll = true;
+//         detailcontentDiv.scrollLeft = this.scrollLeft;
+//         detailprojectedDiv.scrollLeft = this.scrollLeft;
+//     }
+//     isSyncingDetailColumnScroll = false;
+// }
+// detailprojectedDiv.onscroll = function () {
+//     if (!isSyncingDetailProjectedScroll) {
+//         isSyncingDetailContentScroll = true;
+//         isSyncingDetailColumnScroll = true;
+//         detailcontentDiv.scrollLeft = this.scrollLeft;
+//         detailcolumnDiv.scrollLeft = this.scrollLeft;
+//     }
+//     isSyncingDetailProjectedScroll = false;
+// }
+// detailcontentDiv.onscroll = function () {
+//     if (!isSyncingDetailContentScroll) {
+//         isSyncingDetailColumnScroll = true;
+//         isSyncingDetailProjectedScroll = true;
+//         isSyncingDetailYearScroll = true;
+//         detailcolumnDiv.scrollLeft = this.scrollLeft;
+//         detailprojectedDiv.scrollLeft = this.scrollLeft;
+//         selectedyearDiv.scrollTop = this.scrollTop;
+//         selectedyearDiv.scrollBottom = this.scrollBottom;
+//     }
+//     isSyncingDetailContentScroll = false;
+// }
+// selectedyearDiv.onscroll = function () {
+//     if (!isSyncingDetailYearScroll) {
+//         isSyncingDetailColumnScroll = true;
+//         detailcontentDiv.scrollTop = this.scrollTop;
+//         detailcontentDiv.scrollBottom = this.scrollBottom;
+//     }
+//     isSyncingDetailYearScroll = false;
+// }
 
 function draw_flow_detail() {
     flow_svg.select('.flowdetail').selectAll('g').remove();
