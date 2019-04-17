@@ -109,7 +109,7 @@ const BUTTON_INVISIBLE = 2;
 const BUTTON_BLURRED = 1;
 const BUTTON_VISIBLE = 0;
 
-
+let selected_flow = [];
 let project_button_data = {'skyline': BUTTON_VISIBLE, 'non-skyline': BUTTON_VISIBLE, 'filtered': BUTTON_VISIBLE,}
 
 default_setting();
@@ -1763,8 +1763,22 @@ function update_flow_detail(data) {
 
 }
 
+function init_selected_flow() {
+    selected_flow = [];
+    for (y_i in year_data) {
+        selected_flow.push(
+            {'skyline': [], 'nonskyline': [], 'reserved': []}
+        )
+    }
+}
+
 function draw_selected_flow() {
-    
+    selected_players.forEach(function (p) {
+        for (let y_i  in sky_filtered) {
+
+        }
+    })
+
 }
 
 /*
@@ -2448,27 +2462,27 @@ function draw_parallel_coordinates() {
             .attr('stroke', 'grey')
             .style('opacity', 0.8)
             .attr('d', line);
-        let circle_data = [];
-        path_data.forEach(function (d) {
-            for (i in d) {
-                // console.log(i, d);
-                if (d[i])
-                    circle_data.push(d[i]);
-            }
-
-        })
+        // let circle_data = [];
+        // path_data.forEach(function (d) {
+        //     for (i in d) {
+        //         // console.log(i, d);
+        //         if (d[i])
+        //             circle_data.push(d[i]);
+        //     }
+        //
+        // })
         // console.log(circle_data)
-        d3.select('.lines-' + columnlistfinal.indexOf(c))
-            .selectAll(".dot")
-            .data(circle_data)
-            .enter()
-            .append("circle")
-            .attr("class", "dot")
-            .attr('stroke', 'black')
-            .attr("cx", line.x())
-            .attr("cy", line.y())
-            .attr('fill', 'transparent')
-            .attr("r", 3.5);
+        // d3.select('.lines-' + columnlistfinal.indexOf(c))
+        //     .selectAll(".dot")
+        //     .data(circle_data)
+        //     .enter()
+        //     .append("circle")
+        //     .attr("class", "dot")
+        //     .attr('stroke', 'black')
+        //     .attr("cx", line.x())
+        //     .attr("cy", line.y())
+        //     .attr('fill', 'transparent')
+        //     .attr("r", 3.5);
     })
 
 
