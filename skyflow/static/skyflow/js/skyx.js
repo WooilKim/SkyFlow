@@ -17,7 +17,7 @@ let new_scaleX = d3.scaleLinear().range([0, 450]).domain([-55, 55]);
 let new_scaleY = d3.scaleLinear().range([0, 450]).domain([-55, 55]);
 const SKYLINE_COLOR = '#4A6FE3',
     NON_SKYLINE_COLOR = '#D33F6A',
-    BENCH_COLOR = 'grey';
+    RESERVED_COLOR = 'grey';
 let colorscale = d3.scaleOrdinal(["#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "#c49c94", "#e377c2", "#f7b6d2", "#7f7f7f", "#c7c7c7", "#bcbd22", "#dbdb8d", "#17becf", "#9edae5"]);
 let selected_player_colorscale = d3.scaleOrdinal(["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"].reverse())
 let draw_data;
@@ -1265,17 +1265,17 @@ function draw_flow() {
 
     for (let i = 0; i < sky_filtered.length - 1; i++) {
         // sky_filtered[i]['new'] = sky_filtered[i + 1]['skyline'].filter(x => sky_filtered[i]['skyline'].indexOf(x) < 0 && sky_filtered[i]['non-skyline'].indexOf(x) < 0);
-        sky_filtered[i]['bench'] = yearly_filtered[i + 1].map(x => x['PlayerID']).filter(x => yearly_filtered[i].map(x => x['PlayerID']).indexOf(x) < 0);
+        sky_filtered[i]['reserved'] = yearly_filtered[i + 1].map(x => x['PlayerID']).filter(x => yearly_filtered[i].map(x => x['PlayerID']).indexOf(x) < 0);
         // sky_filtered[i]['new'].concat(sky_filtered[i + 1]['non-skyline'].filter(x => sky_filtered[i]['skyline'].indexOf(x) < 0 && sky_filtered[i]['non-skyline'].indexOf(x) < 0))
     }
-    sky_filtered[sky_filtered.length - 1]['bench'] = [];
+    sky_filtered[sky_filtered.length - 1]['reserved'] = [];
     for (let i = 1; i < sky_filtered.length; i++) {
         // sky_filtered[i]['out'] = sky_filtered[i - 1]['skyline'].filter(x => sky_filtered[i]['skyline'].indexOf(x) < 0 && sky_filtered[i]['non-skyline'].indexOf(x) < 0)
         // sky_filtered[i]['out'].concat(sky_filtered[i - 1]['non-skyline'].filter(x => sky_filtered[i]['skyline'].indexOf(x) < 0 && sky_filtered[i]['non-skyline'].indexOf(x) < 0))
         let tmp = yearly_filtered[i - 1].map(x => x['PlayerID']).filter(x => yearly_filtered[i].map(x => x['PlayerID']).indexOf(x) < 0);
         tmp.forEach(function (d) {
-            if (sky_filtered[i]['bench'].indexOf(d) < 0)
-                sky_filtered[i]['bench'].push(d);
+            if (sky_filtered[i]['reserved'].indexOf(d) < 0)
+                sky_filtered[i]['reserved'].push(d);
         })
     }
     // sky_filtered[0]['out'] = [];
@@ -1286,19 +1286,19 @@ function draw_flow() {
         sky_filtered_length.push({
             'skyline': d['skyline'].length,
             'non-skyline': d['non-skyline'].length,
-            'bench': d['bench'].length,
+            'reserved': d['reserved'].length,
             'year_idx': i,
-            'total': d['skyline'].length + d['non-skyline'].length + d['bench'].length
+            'total': d['skyline'].length + d['non-skyline'].length + d['reserved'].length
         })
     });
     // console.log(sky_filtered_length);
-    let keys = ['skyline', 'non-skyline', 'bench'];
+    let keys = ['skyline', 'non-skyline', 'reserved'];
     let stack = d3.stack().keys(keys);
     let layers = stack(sky_filtered_length);
     let bar_width = 20;
 
     let z = d3.scaleOrdinal()
-        .range([SKYLINE_COLOR, NON_SKYLINE_COLOR, BENCH_COLOR]);
+        .range([SKYLINE_COLOR, NON_SKYLINE_COLOR, RESERVED_COLOR]);
     // ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"]);
     let label_svg = d3.select('div#flow_label').append('svg')
         .attr('width', 15)
@@ -1368,7 +1368,7 @@ function draw_flow() {
         let t_idxs = [];
         s_idxs.push(0);
         t_idxs.push(0);
-        let keys = ['skyline', 'non-skyline', 'bench'];
+        let keys = ['skyline', 'non-skyline', 'reserved'];
         for (let c = 1; c < keys.length; c++) {
             // console.log(s_idxs[c - 1], sky_filtered[y][c - 1].length)
             s_idxs.push(s_idxs[c - 1] + sky_filtered[y][keys[c - 1]].length)
@@ -1767,24 +1767,68 @@ function init_selected_flow() {
     selected_flow = [];
     for (y_i in year_data) {
         selected_flow.push(
-            {'skyline': [], 'nonskyline': [], 'reserved': []}
+            {'skyline': [], 'non-skyline': [], 'reserved': []}
         )
     }
 }
 
 function draw_selected_flow() {
+    init_selected_flow();
     selected_players.forEach(function (p) {
         for (let y_i  in sky_filtered) {
-
+            if (sky_filtered[y_i]['skyline'].indexOf(p) > -1) {
+                selected_flow[y_i]['skyline'].push(p);
+            } else if (sky_filtered[y_i]['non-skyline'].indexOf(p) > -1) {
+                selected_flow[y_i]['non-skyline'].push(p);
+            } else if (sky_filtered[y_i]['reserved'].indexOf(p) > -1) {
+                selected_flow[y_i]['reserved'].push(p);
+            } else {
+                continue;
+            }
         }
-    })
+    });
+    // console.log(selected_flow);
+    flow_svg.selectAll('.selectedflow').remove();
+    for (let y_i in selected_flow) {
+        let keys = ['skyline', 'non-skyline', 'reserved'];
+        for (k_i in keys) {
+            if (selected_flow[y_i][keys[k_i]].length > 0) {
+                let loc = get_loc_height_selected_flow(y_i, keys[k_i]);
+                console.log(loc);
+                let height = sky_filtered[y_i][keys[k_i]].length;
+                for (p_i in selected_flow[y_i][keys[k_i]]) {
+                    let player = selected_flow[y_i][keys[k_i]][p_i];
+                    flow_svg.append('rect')
+                        .attr('class', 'selectedflow')
+                        .attr('x', loc.x)
+                        .attr('y', loc.y + height / selected_flow[y_i][keys[k_i]].length * p_i)
+                        .attr('width', 5)
+                        .attr('height', height / selected_flow[y_i][keys[k_i]].length)
+                        .style('fill', selected_player_colorscale(selected_players.indexOf(player)));
+                }
 
+            }
+        }
+    }
+}
+
+function get_loc_height_selected_flow(y_i, opt) {
+    let x_gap = 50
+    let x = y_i * x_gap;
+    let y = 0;
+    if (opt === 'skyline') {
+        y = 0;
+    } else if (opt === 'non-skyline') {
+        y = 10 + sky_filtered[y_i]['skyline'].length;
+    } else {
+        y = 20 + sky_filtered[y_i]['skyline'].length + sky_filtered[y_i]['non-skyline'].length;
+    }
+    return {'x': x, 'y': y};
 }
 
 /*
-******      LIST VIEW      ******
+ *      LIST VIEW
  */
-
 function draw_list() {
 
     list_head_svg
@@ -1859,6 +1903,7 @@ function draw_list() {
             detail_bar_mouseout(d[0]);
             detail_bar_click();
             redraw_projected_selected_players();
+            draw_selected_flow();
         })
     list_g.append('rect')
         .attr('height', 20)
