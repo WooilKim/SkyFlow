@@ -1473,6 +1473,7 @@ function draw_flow() {
             // return y(d[0] / d.data.total);
         })
         .attr("height", function (d) {
+
             return y((d[1] - d[0]));
             // return y((d[1] - d[0]) / d.data.total);
         })
@@ -1718,7 +1719,9 @@ function draw_flow() {
         // })
         .attr('width', 400)
         .attr('height', 500);
-
+    flow_svg.append('g')
+        .attr('class', 'selectedplayer')
+        .attr('transform', 'translate(20,20)')
 }
 
 let sc = ['G', '3PAr', 'ORB%', 'TRB%', 'AST%', 'STL%', 'BLK%', 'TOV%'];
@@ -1773,6 +1776,7 @@ function init_selected_flow() {
 }
 
 function draw_selected_flow() {
+    let g = flow_svg.select('g.selectedplayer')
     init_selected_flow();
     selected_players.forEach(function (p) {
         for (let y_i  in sky_filtered) {
@@ -1788,7 +1792,10 @@ function draw_selected_flow() {
         }
     });
     // console.log(selected_flow);
-    flow_svg.selectAll('.selectedflow').remove();
+    g.selectAll('.selectedflow').remove();
+    let y = d3.scaleLinear()
+        .range([0, project_div.clientWidth - 30]).domain([0, d3.max(sky_filtered_length.map(x => x.total))]);
+
     for (let y_i in selected_flow) {
         let keys = ['skyline', 'non-skyline', 'reserved'];
         for (k_i in keys) {
@@ -1798,13 +1805,16 @@ function draw_selected_flow() {
                 let height = sky_filtered[y_i][keys[k_i]].length;
                 for (p_i in selected_flow[y_i][keys[k_i]]) {
                     let player = selected_flow[y_i][keys[k_i]][p_i];
-                    flow_svg.append('rect')
+                    g.append('rect')
                         .attr('class', 'selectedflow')
                         .attr('x', loc.x)
-                        .attr('y', loc.y + height / selected_flow[y_i][keys[k_i]].length * p_i)
+                        .attr('y', loc.y + y(height / selected_flow[y_i][keys[k_i]].length) * p_i)
                         .attr('width', 5)
-                        .attr('height', height / selected_flow[y_i][keys[k_i]].length)
-                        .style('fill', selected_player_colorscale(selected_players.indexOf(player)));
+                        .attr('height', y(height / selected_flow[y_i][keys[k_i]].length))
+                        .style('fill', selected_player_colorscale(selected_players.indexOf(player)))
+                        .on('mouseover', function () {
+                            console.log(player);
+                        });
                 }
 
             }
@@ -1813,15 +1823,17 @@ function draw_selected_flow() {
 }
 
 function get_loc_height_selected_flow(y_i, opt) {
-    let x_gap = 50
+    let scaley = d3.scaleLinear()
+        .range([0, project_div.clientWidth - 30]).domain([0, d3.max(sky_filtered_length.map(x => x.total))]);
+    let x_gap = 100
     let x = y_i * x_gap;
     let y = 0;
     if (opt === 'skyline') {
         y = 0;
     } else if (opt === 'non-skyline') {
-        y = 10 + sky_filtered[y_i]['skyline'].length;
+        y = 10 + scaley(sky_filtered[y_i]['skyline'].length);
     } else {
-        y = 20 + sky_filtered[y_i]['skyline'].length + sky_filtered[y_i]['non-skyline'].length;
+        y = 20 + scaley(sky_filtered[y_i]['skyline'].length + sky_filtered[y_i]['non-skyline'].length);
     }
     return {'x': x, 'y': y};
 }
@@ -2571,131 +2583,131 @@ function draw_detail_dominance() {
 }
 
 function draw_detail_projected(y_i) {
-    timeline_projected_svg.attr('width', d3.max([timeline_div_width - 100 - 2, (timeline_year_padding + (timeline_each_width + timeline_gap_width) * timeline_columns.length)]))
-    d3.select('div#projected_year').select('svg').remove();
-    let yearsvg = d3.select('div#projected_year').append('svg')
-        .attr('width', 100)
-        .attr('height', 100);
-    yearsvg.append('g').append('text')
-        .text(year_data[y_i])
-        .style('font-size', '12px')
-        .attr('x', 30)
-        .attr('y', 70);
-
-    let old_details = timeline_projected_svg.selectAll('.attr')
-        .data(timeline_columns);
-    old_details.exit().remove();
-    let new_details = old_details.enter()
-        .append('g');
-    let details = new_details.merge(old_details)
-        .attr('class', function (d) {
-            return 'attr ' + 'attr-' + columns.indexOf(d);
-        })
-        .attr('transform', function (d, i) {
-            return 'translate(' + (timeline_year_padding + (timeline_each_width + timeline_gap_width) * i) + ',5)';
-        });
-    let axis_x = new_details.append('g')
-        .attr('class', function (d) {
-            return 'axis-x'
-        })
-        .attr('transform', 'translate(0,0)');
-    // let axis_y = new_details.append('g')
+    // timeline_projected_svg.attr('width', d3.max([timeline_div_width - 100 - 2, (timeline_year_padding + (timeline_each_width + timeline_gap_width) * timeline_columns.length)]))
+    // d3.select('div#projected_year').select('svg').remove();
+    // let yearsvg = d3.select('div#projected_year').append('svg')
+    //     .attr('width', 100)
+    //     .attr('height', 100);
+    // yearsvg.append('g').append('text')
+    //     .text(year_data[y_i])
+    //     .style('font-size', '12px')
+    //     .attr('x', 30)
+    //     .attr('y', 70);
+    //
+    // let old_details = timeline_projected_svg.selectAll('.attr')
+    //     .data(timeline_columns);
+    // old_details.exit().remove();
+    // let new_details = old_details.enter()
+    //     .append('g');
+    // let details = new_details.merge(old_details)
     //     .attr('class', function (d) {
-    //         console.log(d);
-    //         return 'axis-y'
+    //         return 'attr ' + 'attr-' + columns.indexOf(d);
+    //     })
+    //     .attr('transform', function (d, i) {
+    //         return 'translate(' + (timeline_year_padding + (timeline_each_width + timeline_gap_width) * i) + ',5)';
     //     });
-    timeline_columns.forEach(function (column) {
-        let c_i = columns.indexOf(column);
-        let arr = yearly_filtered[y_i].map(x => +x[column]);
-        // console.log(column, d3.extent(arr));
-        let scaleX = d3.scaleLinear().domain(column_extents[column]).range([50, 0]);
-        let axis = d3.axisLeft(scaleX).tickValues(d3.extent(arr)).tickFormat(function (d) {
-            if (d >= 1000000)
-                return Math.floor(d / 1000000) + 'M';
-            else if (d >= 1000)
-                return Math.floor(d / 1000) + 'k';
-            else
-                return Math.round(d * 1000.0) / 1000.0;
-        });
-        let axis2 = d3.axisLeft(scaleX).tickValues(column_extents[column]);
-        d3.select('g.attr-' + c_i).select('g.axis-x').call(axis);
-        d3.select('g.attr-' + c_i).append('g').call(axis2.tickSize(-300)
-            .tickFormat(''));
-    });
-
-    let bars = details.selectAll('rect')
-        .data(function (d) {
-            return yearly_filtered[y_i].sort(function (a, b) {
-                return a[d] - b[d];
-            });
-        });
-
-    bars.exit().remove();
-    let new_bars = bars.enter()
-        .append('rect');
-
-    new_bars.merge(bars)
-        .attr('class', function (d, i) {
-            return 'bar bar-' + d['PlayerID'];
-        })
-        .attr('x', function (d, i, j) {
-            return i * (timeline_each_width / j.length);
-        })
-        .attr('y', function (d) {
-            let attr = d3.select(this.parentNode).datum();
-            // console.log('extent', d3.extent(yearly_filtered[y_i].map(x => +x[attr])));
-            // console.log('2047', attr, column_extents[attr])
-            let scaleattr = d3.scaleLinear().domain(column_extents[attr]).range([0, 50]);
-            if (d[attr] === '')
-                return 50;
-            else {
-                return 50 - scaleattr(+d[attr]);
-            }
-        })
-        .attr('height', function (d) {
-            let attr = d3.select(this.parentNode).datum();
-            let scaleattr = d3.scaleLinear().domain(column_extents[attr]).range([0, 50]);
-            // console.log(attr, d[attr], d);
-            if (d[attr] === '')
-                return 0;
-            else
-                return scaleattr(+d[attr]);
-        })
-        .attr('fill', function (d) {
-            // let attr = d3.select(this.parentNode).datum();
-            // if (d['dom_by'] == 0)
-            //     return SKYLINE_COLOR;
-            // else return NON_SKYLINE_COLOR;
-            return 'grey';
-            // return colorscale(skyline_columns.indexOf(attr))
-        })
-        .attr('width', function (d, i, j) {
-            return (timeline_each_width / j.length);
-        })
-        .on('mouseover', function (d) {
-            project_points_mouseover(d['PlayerID'], d['Player']);
-            detail_bar_mouseover(d['PlayerID'], d['Player']);
-        })
-        .on('mouseout', function (d) {
-            project_points_mouseout(d['PlayerID']);
-            detail_bar_mouseout(d['PlayerID']);
-        })
-        .on("click", function (d) {
-            update_selected_players(d['PlayerID']);
-            draw_detail_projected(year_data.indexOf(current_year));
-            detail_bar_mouseout(d['PlayerID']);
-            detail_bar_click();
-            redraw_projected_selected_players();
-            // project_points_click(d);
-        });
-    selected_players.forEach(function (p, p_i) {
-        d3.selectAll('.bar-' + p)
-            .attr('fill', selected_player_colorscale(p_i))
-            .attr('height', 50)
-            .attr('y', function (d) {
-                return 0;
-            });
-    });
+    // let axis_x = new_details.append('g')
+    //     .attr('class', function (d) {
+    //         return 'axis-x'
+    //     })
+    //     .attr('transform', 'translate(0,0)');
+    // // let axis_y = new_details.append('g')
+    // //     .attr('class', function (d) {
+    // //         console.log(d);
+    // //         return 'axis-y'
+    // //     });
+    // timeline_columns.forEach(function (column) {
+    //     let c_i = columns.indexOf(column);
+    //     let arr = yearly_filtered[y_i].map(x => +x[column]);
+    //     // console.log(column, d3.extent(arr));
+    //     let scaleX = d3.scaleLinear().domain(column_extents[column]).range([50, 0]);
+    //     let axis = d3.axisLeft(scaleX).tickValues(d3.extent(arr)).tickFormat(function (d) {
+    //         if (d >= 1000000)
+    //             return Math.floor(d / 1000000) + 'M';
+    //         else if (d >= 1000)
+    //             return Math.floor(d / 1000) + 'k';
+    //         else
+    //             return Math.round(d * 1000.0) / 1000.0;
+    //     });
+    //     let axis2 = d3.axisLeft(scaleX).tickValues(column_extents[column]);
+    //     d3.select('g.attr-' + c_i).select('g.axis-x').call(axis);
+    //     d3.select('g.attr-' + c_i).append('g').call(axis2.tickSize(-300)
+    //         .tickFormat(''));
+    // });
+    //
+    // let bars = details.selectAll('rect')
+    //     .data(function (d) {
+    //         return yearly_filtered[y_i].sort(function (a, b) {
+    //             return a[d] - b[d];
+    //         });
+    //     });
+    //
+    // bars.exit().remove();
+    // let new_bars = bars.enter()
+    //     .append('rect');
+    //
+    // new_bars.merge(bars)
+    //     .attr('class', function (d, i) {
+    //         return 'bar bar-' + d['PlayerID'];
+    //     })
+    //     .attr('x', function (d, i, j) {
+    //         return i * (timeline_each_width / j.length);
+    //     })
+    //     .attr('y', function (d) {
+    //         let attr = d3.select(this.parentNode).datum();
+    //         // console.log('extent', d3.extent(yearly_filtered[y_i].map(x => +x[attr])));
+    //         // console.log('2047', attr, column_extents[attr])
+    //         let scaleattr = d3.scaleLinear().domain(column_extents[attr]).range([0, 50]);
+    //         if (d[attr] === '')
+    //             return 50;
+    //         else {
+    //             return 50 - scaleattr(+d[attr]);
+    //         }
+    //     })
+    //     .attr('height', function (d) {
+    //         let attr = d3.select(this.parentNode).datum();
+    //         let scaleattr = d3.scaleLinear().domain(column_extents[attr]).range([0, 50]);
+    //         // console.log(attr, d[attr], d);
+    //         if (d[attr] === '')
+    //             return 0;
+    //         else
+    //             return scaleattr(+d[attr]);
+    //     })
+    //     .attr('fill', function (d) {
+    //         // let attr = d3.select(this.parentNode).datum();
+    //         // if (d['dom_by'] == 0)
+    //         //     return SKYLINE_COLOR;
+    //         // else return NON_SKYLINE_COLOR;
+    //         return 'grey';
+    //         // return colorscale(skyline_columns.indexOf(attr))
+    //     })
+    //     .attr('width', function (d, i, j) {
+    //         return (timeline_each_width / j.length);
+    //     })
+    //     .on('mouseover', function (d) {
+    //         project_points_mouseover(d['PlayerID'], d['Player']);
+    //         detail_bar_mouseover(d['PlayerID'], d['Player']);
+    //     })
+    //     .on('mouseout', function (d) {
+    //         project_points_mouseout(d['PlayerID']);
+    //         detail_bar_mouseout(d['PlayerID']);
+    //     })
+    //     .on("click", function (d) {
+    //         update_selected_players(d['PlayerID']);
+    //         draw_detail_projected(year_data.indexOf(current_year));
+    //         detail_bar_mouseout(d['PlayerID']);
+    //         detail_bar_click();
+    //         redraw_projected_selected_players();
+    //         // project_points_click(d);
+    //     });
+    // selected_players.forEach(function (p, p_i) {
+    //     d3.selectAll('.bar-' + p)
+    //         .attr('fill', selected_player_colorscale(p_i))
+    //         .attr('height', 50)
+    //         .attr('y', function (d) {
+    //             return 0;
+    //         });
+    // });
 
 }
 
@@ -2721,199 +2733,199 @@ function detail_bars_click(d) {
 }
 
 function draw_detailview() {
-    // console.log('columns', columns);
-
-    // console.log(timeline_columns);
-    timeline_svg.attr('height', d3.max([timeline_div_height - title_height - 30 - 20 - timeline_each_height, selected_years.length * timeline_each_height]))
-    timeline_svg.attr('width', d3.max([timeline_div_width - 100 - 2, (timeline_year_padding + (timeline_each_width + timeline_gap_width) * timeline_columns.length)]))
-    timeline_svg.select('g,timeline_column').remove();
-    let yearsvg = d3.select('div#selected_year').select('svg')
-        .attr('width', 100)
-        .attr('height', d3.max([timeline_div_height - title_height - 30 - 20 - timeline_each_height, selected_years.length * timeline_each_height]));
-    yearsvg.selectAll('g').remove();
-    yearsvg.selectAll('g')
-        .data(selected_years)
-        .enter()
-        .append('g')
-        .attr('transform', function (d, i) {
-            return 'translate(0, ' + (i * timeline_each_height) + ')';
-        })
-        .append('text')
-        .text(function (d) {
-            return d;
-        })
-        .style('font-size', '12px')
-        .style('alignment-baseline', 'middle')
-        .attr('x', 30)
-        .attr('y', 35);
-    timeline_sorted = yearly_filtered.slice();
-    timeline_svg.selectAll('.row').remove();
-    let old_rows = timeline_svg.selectAll('.row')
-        .data(selected_years);
-    old_rows.exit().remove();
-    let new_rows = old_rows.enter()
-        .append('g');
-    let rows = new_rows.merge(old_rows)
-        .attr('class', function (d) {
-            return 'row row-' + d;
-        })
-        .attr('transform', function (d, i) {
-            return 'translate(' + 0 + ',' + (i * (timeline_each_height)) + ')'
-        });
-    // let bg = rows.append('rect')
-    //     .attr('class', 'bg')
-    //     .attr('height', timeline_each_height)
-    //     .attr('width', d3.max([timeline_div_width - 100 - 2, (timeline_year_padding + (timeline_each_width + timeline_gap_width) * timeline_columns.length)]))
-    let old_attrs = rows.selectAll('.attr')
-        .data(function () {
-            return timeline_columns
-        });
-    old_attrs.exit().remove();
-    let new_attrs = old_attrs.enter()
-        .append('g');
-    let attrs = new_attrs.merge(old_attrs)
-        .attr('class', function (d) {
-            return 'attr' + ' attr-' + columns.indexOf(d);
-        })
-        .attr('transform', function (d, i) {
-            return 'translate(' + (timeline_year_padding + i * (timeline_each_width + timeline_gap_width)) + ',5)';
-        });
-
-    let axis_x = attrs.append('g')
-        .attr('class', function (d) {
-            return 'axis-x'
-        })
-        .attr('transform', 'translate(0,0)');
-
-
-    let old_bars = attrs.selectAll('.bar')
-        .data(function (d) {
-            let year = d3.select(this.parentNode).datum();
-            let y_i = year_data.indexOf(year);
-            // console.log(year, y_i, yearly_filtered);
-            return yearly_filtered[y_i].sort(function (a, b) {
-                return a[d] - b[d]
-            });
-        });
-    old_bars.exit().remove();
-    let sky_bars = attrs.selectAll('.skybar')
-        .data(function (d) {
-            let year = d3.select(this.parentNode).datum();
-            let y_i = year_data.indexOf(year);
-            // console.log(year, y_i, yearly_filtered);
-            return yearly_filtered[y_i].sort(function (a, b) {
-                return a[d] - b[d]
-            });
-        })
-        .enter()
-        .append('rect')
-        .attr('class', 'skybar')
-        .attr('x', function (d, i, j) {
-            return i * (timeline_each_width / j.length);
-        })
-        .attr('y', function (d) {
-            if (d['dom_by'] == 0)
-                return -3;
-            else return 51;
-            // } catch (e) {
-            //     console.log(d, e);
-            // }
-
-        })
-        .attr('height', function (d) {
-            return 3;
-        })
-        .attr('fill', function (d) {
-            // let attr = d3.select(this.parentNode).datum();
-            // if (selected_path_players.length > 0) {
-            //     if (selected_path_players.indexOf(d['Player']) < 0)
-            //         return 'silver';
-            // }
-            // if (filter_selected.length > 0) {
-            //     if (final_filtered_players.indexOf(d['Player']) < 0)
-            //         return 'silver';
-            // }
-            if (d['dom_by'] == 0)
-                return SKYLINE_COLOR;
-            else return NON_SKYLINE_COLOR;
-            // return colorscale(skyline_columns.indexOf(attr))
-        })
-        .attr('width', function (d, i, j) {
-            return (timeline_each_width / j.length);
-        })
-    let new_bars = old_bars
-        .enter()
-        .append('rect');
-    let bars = new_bars.merge(old_bars)
-        .attr('class', function (d, i) {
-            return 'bar bar-' + d['PlayerID'];
-        })
-        .attr('x', function (d, i, j) {
-            return i * (timeline_each_width / j.length);
-        })
-        .attr('y', function (d) {
-            let attr = d3.select(this.parentNode).datum();
-            let scaleattr = d3.scaleLinear().domain(column_extents[attr]).range([0, 50]);
-            if (d[attr] === '')
-                return 50;
-            else
-                return 50 - scaleattr(+d[attr]);
-            // } catch (e) {
-            //     console.log(d, e);
-            // }
-
-        })
-        .attr('height', function (d) {
-            let attr = d3.select(this.parentNode).datum();
-            let scaleattr = d3.scaleLinear().domain(column_extents[attr]).range([0, 50]);
-            // console.log(attr, d[attr], d);
-            if (d[attr] === '')
-                return 0;
-            else
-                return scaleattr(+d[attr]);
-        })
-        .attr('fill', function (d) {
-            // let attr = d3.select(this.parentNode).datum();
-            // if (selected_path_players.length > 0) {
-            //     if (selected_path_players.indexOf(d['Player']) < 0)
-            //         return 'silver';
-            // }
-            // if (filter_selected.length > 0) {
-            //     if (final_filtered_players.indexOf(d['Player']) < 0)
-            //         return 'silver';
-            // }
-            // if (d['dom_by'] == 0)
-            //     return SKYLINE_COLOR;
-            // else return NON_SKYLINE_COLOR;
-            return 'grey';
-            // return colorscale(skyline_columns.indexOf(attr))
-        })
-        .attr('width', function (d, i, j) {
-            return (timeline_each_width / j.length);
-        })
-        .on('mouseover', function (d) {
-            project_points_mouseover(d['PlayerID'], d['Player']);
-            detail_bar_mouseover(d['PlayerID'], d['Player']);
-        })
-        .on('mouseout', function (d) {
-            project_points_mouseout(d['PlayerID']);
-            detail_bar_mouseout(d['PlayerID']);
-        })
-        .on('click', function (d) {
-            update_selected_players(d['PlayerID']);
-            detail_bar_click();
-            detail_bar_mouseout(d['PlayerID']);
-            draw_detail_projected(year_data.indexOf(current_year));
-            redraw_projected_selected_players();
-        });
-    selected_players.forEach(function (p, p_i) {
-        d3.selectAll('.bar-' + p)
-            .attr('fill', selected_player_colorscale(p_i))
-            .attr('height', 50)
-            .attr('y', function (d) {
-                return 0;
-            });
-    });
+    // // console.log('columns', columns);
+    //
+    // // console.log(timeline_columns);
+    // timeline_svg.attr('height', d3.max([timeline_div_height - title_height - 30 - 20 - timeline_each_height, selected_years.length * timeline_each_height]))
+    // timeline_svg.attr('width', d3.max([timeline_div_width - 100 - 2, (timeline_year_padding + (timeline_each_width + timeline_gap_width) * timeline_columns.length)]))
+    // timeline_svg.select('g,timeline_column').remove();
+    // let yearsvg = d3.select('div#selected_year').select('svg')
+    //     .attr('width', 100)
+    //     .attr('height', d3.max([timeline_div_height - title_height - 30 - 20 - timeline_each_height, selected_years.length * timeline_each_height]));
+    // yearsvg.selectAll('g').remove();
+    // yearsvg.selectAll('g')
+    //     .data(selected_years)
+    //     .enter()
+    //     .append('g')
+    //     .attr('transform', function (d, i) {
+    //         return 'translate(0, ' + (i * timeline_each_height) + ')';
+    //     })
+    //     .append('text')
+    //     .text(function (d) {
+    //         return d;
+    //     })
+    //     .style('font-size', '12px')
+    //     .style('alignment-baseline', 'middle')
+    //     .attr('x', 30)
+    //     .attr('y', 35);
+    // timeline_sorted = yearly_filtered.slice();
+    // timeline_svg.selectAll('.row').remove();
+    // let old_rows = timeline_svg.selectAll('.row')
+    //     .data(selected_years);
+    // old_rows.exit().remove();
+    // let new_rows = old_rows.enter()
+    //     .append('g');
+    // let rows = new_rows.merge(old_rows)
+    //     .attr('class', function (d) {
+    //         return 'row row-' + d;
+    //     })
+    //     .attr('transform', function (d, i) {
+    //         return 'translate(' + 0 + ',' + (i * (timeline_each_height)) + ')'
+    //     });
+    // // let bg = rows.append('rect')
+    // //     .attr('class', 'bg')
+    // //     .attr('height', timeline_each_height)
+    // //     .attr('width', d3.max([timeline_div_width - 100 - 2, (timeline_year_padding + (timeline_each_width + timeline_gap_width) * timeline_columns.length)]))
+    // let old_attrs = rows.selectAll('.attr')
+    //     .data(function () {
+    //         return timeline_columns
+    //     });
+    // old_attrs.exit().remove();
+    // let new_attrs = old_attrs.enter()
+    //     .append('g');
+    // let attrs = new_attrs.merge(old_attrs)
+    //     .attr('class', function (d) {
+    //         return 'attr' + ' attr-' + columns.indexOf(d);
+    //     })
+    //     .attr('transform', function (d, i) {
+    //         return 'translate(' + (timeline_year_padding + i * (timeline_each_width + timeline_gap_width)) + ',5)';
+    //     });
+    //
+    // let axis_x = attrs.append('g')
+    //     .attr('class', function (d) {
+    //         return 'axis-x'
+    //     })
+    //     .attr('transform', 'translate(0,0)');
+    //
+    //
+    // let old_bars = attrs.selectAll('.bar')
+    //     .data(function (d) {
+    //         let year = d3.select(this.parentNode).datum();
+    //         let y_i = year_data.indexOf(year);
+    //         // console.log(year, y_i, yearly_filtered);
+    //         return yearly_filtered[y_i].sort(function (a, b) {
+    //             return a[d] - b[d]
+    //         });
+    //     });
+    // old_bars.exit().remove();
+    // let sky_bars = attrs.selectAll('.skybar')
+    //     .data(function (d) {
+    //         let year = d3.select(this.parentNode).datum();
+    //         let y_i = year_data.indexOf(year);
+    //         // console.log(year, y_i, yearly_filtered);
+    //         return yearly_filtered[y_i].sort(function (a, b) {
+    //             return a[d] - b[d]
+    //         });
+    //     })
+    //     .enter()
+    //     .append('rect')
+    //     .attr('class', 'skybar')
+    //     .attr('x', function (d, i, j) {
+    //         return i * (timeline_each_width / j.length);
+    //     })
+    //     .attr('y', function (d) {
+    //         if (d['dom_by'] == 0)
+    //             return -3;
+    //         else return 51;
+    //         // } catch (e) {
+    //         //     console.log(d, e);
+    //         // }
+    //
+    //     })
+    //     .attr('height', function (d) {
+    //         return 3;
+    //     })
+    //     .attr('fill', function (d) {
+    //         // let attr = d3.select(this.parentNode).datum();
+    //         // if (selected_path_players.length > 0) {
+    //         //     if (selected_path_players.indexOf(d['Player']) < 0)
+    //         //         return 'silver';
+    //         // }
+    //         // if (filter_selected.length > 0) {
+    //         //     if (final_filtered_players.indexOf(d['Player']) < 0)
+    //         //         return 'silver';
+    //         // }
+    //         if (d['dom_by'] == 0)
+    //             return SKYLINE_COLOR;
+    //         else return NON_SKYLINE_COLOR;
+    //         // return colorscale(skyline_columns.indexOf(attr))
+    //     })
+    //     .attr('width', function (d, i, j) {
+    //         return (timeline_each_width / j.length);
+    //     })
+    // let new_bars = old_bars
+    //     .enter()
+    //     .append('rect');
+    // let bars = new_bars.merge(old_bars)
+    //     .attr('class', function (d, i) {
+    //         return 'bar bar-' + d['PlayerID'];
+    //     })
+    //     .attr('x', function (d, i, j) {
+    //         return i * (timeline_each_width / j.length);
+    //     })
+    //     .attr('y', function (d) {
+    //         let attr = d3.select(this.parentNode).datum();
+    //         let scaleattr = d3.scaleLinear().domain(column_extents[attr]).range([0, 50]);
+    //         if (d[attr] === '')
+    //             return 50;
+    //         else
+    //             return 50 - scaleattr(+d[attr]);
+    //         // } catch (e) {
+    //         //     console.log(d, e);
+    //         // }
+    //
+    //     })
+    //     .attr('height', function (d) {
+    //         let attr = d3.select(this.parentNode).datum();
+    //         let scaleattr = d3.scaleLinear().domain(column_extents[attr]).range([0, 50]);
+    //         // console.log(attr, d[attr], d);
+    //         if (d[attr] === '')
+    //             return 0;
+    //         else
+    //             return scaleattr(+d[attr]);
+    //     })
+    //     .attr('fill', function (d) {
+    //         // let attr = d3.select(this.parentNode).datum();
+    //         // if (selected_path_players.length > 0) {
+    //         //     if (selected_path_players.indexOf(d['Player']) < 0)
+    //         //         return 'silver';
+    //         // }
+    //         // if (filter_selected.length > 0) {
+    //         //     if (final_filtered_players.indexOf(d['Player']) < 0)
+    //         //         return 'silver';
+    //         // }
+    //         // if (d['dom_by'] == 0)
+    //         //     return SKYLINE_COLOR;
+    //         // else return NON_SKYLINE_COLOR;
+    //         return 'grey';
+    //         // return colorscale(skyline_columns.indexOf(attr))
+    //     })
+    //     .attr('width', function (d, i, j) {
+    //         return (timeline_each_width / j.length);
+    //     })
+    //     .on('mouseover', function (d) {
+    //         project_points_mouseover(d['PlayerID'], d['Player']);
+    //         detail_bar_mouseover(d['PlayerID'], d['Player']);
+    //     })
+    //     .on('mouseout', function (d) {
+    //         project_points_mouseout(d['PlayerID']);
+    //         detail_bar_mouseout(d['PlayerID']);
+    //     })
+    //     .on('click', function (d) {
+    //         update_selected_players(d['PlayerID']);
+    //         detail_bar_click();
+    //         detail_bar_mouseout(d['PlayerID']);
+    //         draw_detail_projected(year_data.indexOf(current_year));
+    //         redraw_projected_selected_players();
+    //     });
+    // selected_players.forEach(function (p, p_i) {
+    //     d3.selectAll('.bar-' + p)
+    //         .attr('fill', selected_player_colorscale(p_i))
+    //         .attr('height', 50)
+    //         .attr('y', function (d) {
+    //             return 0;
+    //         });
+    // });
 
     // d3.selectAll('.bar').classed('selected', false);
 
@@ -2946,120 +2958,120 @@ function draw_detailview() {
     //     let year = d3.select(this.parentNode.parentNode).datum();
     //     console.log(d3.select(this.parentNode).datum(), )
     // })
-    selected_years.forEach(function (y, y_i) {
-        timeline_columns.forEach(function (column) {
-            let c_i = columns.indexOf(column);
-            let arr = yearly_filtered[y_i].map(x => +x[column]);
-            // console.log(column, d3.extent(arr));
-            let scaleX = d3.scaleLinear().domain(column_extents[column]).range([50, 0]);
-            // let scaleX = d3.scaleLinear().domain(d3.extent(arr)).range([50, 0]);
-            // console.log()
-            // d3.scaleLinear().domain(column_extents[attr])
-            let axis = d3.axisLeft(scaleX).tickValues(d3.extent(arr)).tickFormat(function (d) {
-                if (d >= 1000000)
-                    return Math.floor(d / 1000000) + 'M';
-                else if (d >= 1000)
-                    return Math.floor(d / 1000) + 'k';
-                else
-                    return Math.round(d * 1000.0) / 1000.0;
-            });
-            let axis2 = d3.axisLeft(scaleX).tickValues(column_extents[column]);
-            // console.log('y', timeline_svg.select('.row-' + y).select('.attr-' + c_i), timeline_svg.select('.row-' + y).select('attr-' + c_i).select('g.axis-x'))
-            timeline_svg.select('.row-' + y).select('.attr-' + c_i).select('g.axis-x').call(axis);
-            timeline_svg.select('.row-' + y).select('.attr-' + c_i).append('g').call(axis2.tickSize(-300)
-                .tickFormat(''));
-        })
-    })
+    // selected_years.forEach(function (y, y_i) {
+    //     timeline_columns.forEach(function (column) {
+    //         let c_i = columns.indexOf(column);
+    //         let arr = yearly_filtered[y_i].map(x => +x[column]);
+    //         // console.log(column, d3.extent(arr));
+    //         let scaleX = d3.scaleLinear().domain(column_extents[column]).range([50, 0]);
+    //         // let scaleX = d3.scaleLinear().domain(d3.extent(arr)).range([50, 0]);
+    //         // console.log()
+    //         // d3.scaleLinear().domain(column_extents[attr])
+    //         let axis = d3.axisLeft(scaleX).tickValues(d3.extent(arr)).tickFormat(function (d) {
+    //             if (d >= 1000000)
+    //                 return Math.floor(d / 1000000) + 'M';
+    //             else if (d >= 1000)
+    //                 return Math.floor(d / 1000) + 'k';
+    //             else
+    //                 return Math.round(d * 1000.0) / 1000.0;
+    //         });
+    //         let axis2 = d3.axisLeft(scaleX).tickValues(column_extents[column]);
+    //         // console.log('y', timeline_svg.select('.row-' + y).select('.attr-' + c_i), timeline_svg.select('.row-' + y).select('attr-' + c_i).select('g.axis-x'))
+    //         timeline_svg.select('.row-' + y).select('.attr-' + c_i).select('g.axis-x').call(axis);
+    //         timeline_svg.select('.row-' + y).select('.attr-' + c_i).append('g').call(axis2.tickSize(-300)
+    //             .tickFormat(''));
+    //     })
+    // })
 }
 
 function detail_bar_mouseover(player_id, player_name) {
-    // console.log('over', d);
-    d3.selectAll('.bar-' + player_id)
-        .attr('stroke', 'silver')
-        .attr('stroke-width', 3);
-
-    // timeline_svg.selectAll('.row').selectAll('.attr')
-    //     .append('text')
-    //     .attr('text', function (d, i) {
-    //         let c_i = d3.select(this.parentNode).attr('class').slice(10,)
-    //         let year = d3.select(this.parentNode.parentNode).datum()
-    //         console.log(d, c_i, year)
-    //         let p = yearly_filtered[y_i].filter(x => x['PlayerID'] == d['PlayerID'])
+    // // console.log('over', d);
+    // d3.selectAll('.bar-' + player_id)
+    //     .attr('stroke', 'silver')
+    //     .attr('stroke-width', 3);
+    //
+    // // timeline_svg.selectAll('.row').selectAll('.attr')
+    // //     .append('text')
+    // //     .attr('text', function (d, i) {
+    // //         let c_i = d3.select(this.parentNode).attr('class').slice(10,)
+    // //         let year = d3.select(this.parentNode.parentNode).datum()
+    // //         console.log(d, c_i, year)
+    // //         let p = yearly_filtered[y_i].filter(x => x['PlayerID'] == d['PlayerID'])
+    // //     })
+    //
+    // timeline_columns.forEach(function (column) {
+    //     let c_i = columns.indexOf(column);
+    //     let y_i = year_data.indexOf(current_year)
+    //     let p = yearly_filtered[y_i].filter(x => x['PlayerID'] == player_id)
+    //     if (p.length > 0) {
+    //         timeline_projected_svg.select('.attr-' + c_i).select('.axis-x')
+    //             .append('text')
+    //             .attr('class', 'detail')
+    //             .text(function () {
+    //                 // console.log(y_i, column, p[0][column]);
+    //                 return p[0][column];
+    //             })
+    //             // .attr('width', 50)
+    //             // .attr('height', 50)
+    //             .attr('x', timeline_each_width / 2)
+    //             .attr('y', 15)
+    //             .style('text-anchor', 'middle')
+    //             .style('font-size', '11px')
+    //             .attr('fill', 'black')
+    //     }
+    // });
+    //
+    // selected_years.forEach(function (y, y_i) {
+    //     timeline_columns.forEach(function (column) {
+    //         let c_i = columns.indexOf(column);
+    //         let p = yearly_filtered[y_i].filter(x => x['PlayerID'] == player_id)
+    //         if (p.length > 0) {
+    //             // console.log(timeline_svg.select('.row-' + y).select('.attr-' + c_i))
+    //             timeline_svg.select('.row-' + y).select('.attr-' + c_i).select('.axis-x')
+    //                 .append('text')
+    //                 .attr('class', 'detail')
+    //                 .text(function () {
+    //                     // console.log(y_i, column, p[0][column]);
+    //                     return p[0][column];
+    //                 })
+    //                 // .attr('width', 50)
+    //                 // .attr('height', 50)
+    //                 .attr('x', timeline_each_width / 2)
+    //                 .attr('y', 15)
+    //                 .style('text-anchor', 'middle')
+    //                 .style('font-size', '11px')
+    //                 .attr('fill', 'black')
+    //         }
     //     })
-
-    timeline_columns.forEach(function (column) {
-        let c_i = columns.indexOf(column);
-        let y_i = year_data.indexOf(current_year)
-        let p = yearly_filtered[y_i].filter(x => x['PlayerID'] == player_id)
-        if (p.length > 0) {
-            timeline_projected_svg.select('.attr-' + c_i).select('.axis-x')
-                .append('text')
-                .attr('class', 'detail')
-                .text(function () {
-                    // console.log(y_i, column, p[0][column]);
-                    return p[0][column];
-                })
-                // .attr('width', 50)
-                // .attr('height', 50)
-                .attr('x', timeline_each_width / 2)
-                .attr('y', 15)
-                .style('text-anchor', 'middle')
-                .style('font-size', '11px')
-                .attr('fill', 'black')
-        }
-    });
-
-    selected_years.forEach(function (y, y_i) {
-        timeline_columns.forEach(function (column) {
-            let c_i = columns.indexOf(column);
-            let p = yearly_filtered[y_i].filter(x => x['PlayerID'] == player_id)
-            if (p.length > 0) {
-                // console.log(timeline_svg.select('.row-' + y).select('.attr-' + c_i))
-                timeline_svg.select('.row-' + y).select('.attr-' + c_i).select('.axis-x')
-                    .append('text')
-                    .attr('class', 'detail')
-                    .text(function () {
-                        // console.log(y_i, column, p[0][column]);
-                        return p[0][column];
-                    })
-                    // .attr('width', 50)
-                    // .attr('height', 50)
-                    .attr('x', timeline_each_width / 2)
-                    .attr('y', 15)
-                    .style('text-anchor', 'middle')
-                    .style('font-size', '11px')
-                    .attr('fill', 'black')
-            }
-        })
-    })
-
-    d3.select('div#projected_year').select('svg').append('text')
-        .text(player_name)
-        .attr('class', 'name')
-        .attr('x', 100 / 2)
-        .attr('y', 25)
-        .style('text-anchor', 'middle')
-        .style('font-size', '12px')
-        .style('font-weight', 'bold')
-    // timeline_svg.selectAll('.row').selectAll('.attr')
-    //     .append('text')
-    //     .attr('class', 'detail')
-    //     .attr('text', function () {
-    //         console.log(d3.select(this.parentNode).datum(), d3.select(this.parentNode.parentNode).datum());
-    //         return '';
-    //     })
+    // })
+    //
+    // d3.select('div#projected_year').select('svg').append('text')
+    //     .text(player_name)
+    //     .attr('class', 'name')
+    //     .attr('x', 100 / 2)
+    //     .attr('y', 25)
+    //     .style('text-anchor', 'middle')
+    //     .style('font-size', '12px')
+    //     .style('font-weight', 'bold')
+    // // timeline_svg.selectAll('.row').selectAll('.attr')
+    // //     .append('text')
+    // //     .attr('class', 'detail')
+    // //     .attr('text', function () {
+    // //         console.log(d3.select(this.parentNode).datum(), d3.select(this.parentNode.parentNode).datum());
+    // //         return '';
+    // //     })
 
 
 }
 
 function detail_bar_mouseout(player_id) {
-    timeline_svg.selectAll('.row').selectAll('.attr').select('.axis-x').selectAll('.detail').remove();
-    // console.log('.bar-' + player_id)
-    d3.selectAll('.bar-' + player_id)
-        .attr('stroke', 'transparent')
-        .attr('stroke-width', 0);
-    d3.select('div#projected_year').select('svg').selectAll('.name').remove();
-    timeline_projected_svg.selectAll('.attr').select('.axis-x').selectAll('.detail').remove();
+    // timeline_svg.selectAll('.row').selectAll('.attr').select('.axis-x').selectAll('.detail').remove();
+    // // console.log('.bar-' + player_id)
+    // d3.selectAll('.bar-' + player_id)
+    //     .attr('stroke', 'transparent')
+    //     .attr('stroke-width', 0);
+    // d3.select('div#projected_year').select('svg').selectAll('.name').remove();
+    // timeline_projected_svg.selectAll('.attr').select('.axis-x').selectAll('.detail').remove();
 }
 
 function detail_bar_click() {
