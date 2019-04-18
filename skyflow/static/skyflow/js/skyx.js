@@ -1705,6 +1705,9 @@ function draw_flow() {
             // console.log(selected_paths);
             filter_selected_players();
 
+        })
+        .on('dblclick', function (d) {
+            console.log('double click')
         });
 
     let selected_ids = [13, 56, 78, 22];
