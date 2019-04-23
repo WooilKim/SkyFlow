@@ -262,6 +262,17 @@ div.title > * {
     overflow: scroll;
 }
 
+.backline path {
+    stroke: #ddd;
+    fill: none;
+    shape-rendering: crispEdges;
+}
+
+.foreline path {
+    fill: none;
+    stroke: steelblue;
+}
+
 #info_div {
     float: left;
     border: 1px solid silver;

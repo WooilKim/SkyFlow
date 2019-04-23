@@ -60,6 +60,8 @@ let players = [];
 let players_filter_dic = {};
 let final_filtered_players = [];
 let coord_data = {};
+let coord_dragging = {};
+let coord_brush_ids = [];
 let skyline_color_scale = d3.scaleLinear()
         .domain([0, 1])
         .range([d3.rgb('#4A6FE3'), d3.rgb('#DADEEE')])
@@ -1158,52 +1160,101 @@ function draw_slider() {
 }
 
 function draw_project_buttons() {
+    let button_data = ['Selection', 'Filter', 'Skyline', 'Dominance'];
+
     let button_svg = d3.select("div#project_buttons").append("svg")
         .attr('height', project_button_div_height)
         .attr('width', project_div_width);
     let pbutton_width = 30;
 
-    let button_skyline = button_svg.append('g')
-        .attr('id', 'pb_skyline')
-        .attr('class', 'pb');
+    let buttons = button_svg.selectAll('.pb')
+        .data(button_data)
+        .enter()
+        .append('g')
+        .attr('id', (d, i) => 'pb_' + d)
+        .attr('class', 'pb')
+        .attr('transform', (d, i) => 'translate(' + (i * 100) + ',0)')
 
-    button_skyline.append('rect')
-        .attr('fill', 'blue');
-    button_skyline.append('rect')
-        .attr('fill', 'red');
+    buttons.append('text')
+        .text(d => d)
+        .attr('y', 10)
 
-    let button_selected = button_svg.append('g')
-        .attr('id', 'pb_selected')
-        .attr('class', 'pb');
+    buttons.append('rect')
+        .attr('class', 'yes')
+        .attr('x', 0)
+        .attr('y', 10)
+        .attr('width', 20)
+        .attr('height', 10)
+        .attr('fill', 'red')
+    buttons.append('rect')
+        .attr('class', 'no')
+        .attr('x', 20)
+        .attr('y', 10)
+        .attr('width', 20)
+        .attr('height', 10)
+        .attr('fill', 'blue')
+    d3.select('#pb_Selection').select('.yes')
+        .on('click', function () {
+            d3.selectAll('.point-selected')
+                .attr('visibility', 'hidden')
+        })
 
-    button_selected.append('rect')
-        .attr('fill', 'blue');
-    button_selected.append('rect')
-        .attr('fill', 'red');
+    d3.select('#pb_Selection').select('.no')
+        .on('click', function () {
+            d3.selectAll('.point-selected')
+                .attr('visibility', 'visible')
+        })
 
-    let button_filtered = button_svg.append('g')
-        .attr('id', 'pb_filtered')
-        .attr('class', 'pb');
-    // .attr('visibility', 'hidden');
-    button_filtered.append('rect')
-        .attr('fill', 'blue');
-    button_filtered.append('rect')
-        .attr('fill', 'red');
+    d3.select('#pb_Skyline').select('.yes')
+        .on('click', function () {
+            d3.selectAll('.point-skyline')
+                .attr('visibility', 'visible')
+        })
 
-    let button_dominant = button_svg.append('g')
-        .attr('id', 'pb_dominant')
-        .attr('class', 'pb');
-    // .attr('visibility', 'hidden');
-    button_dominant.append('rect')
-        .attr('fill', 'blue');
-    button_dominant.append('rect')
-        .attr('fill', 'red');
+    d3.select('#pb_Skyline').select('.no')
+        .on('click', function () {
+            d3.selectAll('.point-skyline')
+                .attr('visibility', 'hidden')
+        })
 
-    button_svg.selectAll('.pb')
-        .attr('transform', (d, i) => 'translate(' + (i * pbutton_width) + ',0)')
-        .select('rect')
-        .attr('width', pbutton_width)
-        .attr('height', 10);
+
+    // button_skyline.append('rect')
+    //     .attr('fill', 'blue');
+    // button_skyline.append('rect')
+    //     .attr('fill', 'red');
+    //
+    // let button_selected = button_svg.append('g')
+    //     .attr('id', 'pb_selected')
+    //     .attr('class', 'pb');
+    //
+    // button_selected.append('rect')
+    //     .attr('fill', 'blue');
+    // button_selected.append('rect')
+    //     .attr('fill', 'red');
+    //
+    // let button_filtered = button_svg.append('g')
+    //     .attr('id', 'pb_filtered')
+    //     .attr('class', 'pb');
+    // // .attr('visibility', 'hidden');
+    // button_filtered.append('rect')
+    //     .attr('fill', 'blue');
+    // button_filtered.append('rect')
+    //     .attr('fill', 'red');
+    //
+    // let button_dominant = button_svg.append('g')
+    //     .attr('id', 'pb_dominant')
+    //     .attr('class', 'pb');
+    // // .attr('visibility', 'hidden');
+    // button_dominant.append('rect')
+    //     .attr('fill', 'blue');
+    // button_dominant.append('rect')
+    //     .attr('fill', 'red');
+    //
+    // button_svg.selectAll('.pb')
+    //     .attr('transform', (d, i) => 'translate(' + (i * pbutton_width) + ',0)')
+    //     .select('rect')
+    //     .attr('width', pbutton_width)
+    //     .attr('height', 10);
 }
 
 function zoomed() {
@@ -2474,33 +2525,112 @@ function draw_parallel_coordinates() {
         .attr('class', d => 'rowattr attr-' + columnlistfinal.indexOf(d))
         .attr('transform', (d, i) => 'translate(0,' + (i * each_attr_height) + ')');
 
-    timeline_rows.selectAll('.lines')
-        .data(columnlistfinal)
-        .enter()
-        .append('g')
-        .attr('class', d => 'lines lines-' + columnlistfinal.indexOf(d))
-        .attr('transform', (d, i) => 'translate(0,' + (i * each_attr_height) + ')');
+    timeline_rows.append('g')
+        .attr('class', 'backline');
+    timeline_rows.append('g')
+        .attr('class', 'foreline');
+
+    // timeline_rows.selectAll('.lines')
+    //     .data(columnlistfinal)
+    //     .enter()
+    //     .append('g')
+    //     .attr('class', d => 'lines lines-' + columnlistfinal.indexOf(d))
+    //     .attr('transform', (d, i) => 'translate(0,' + (i * each_attr_height) + ')');
 
 
+    function pc_brush() {
+        var actives = [];
+        timeline_svg.selectAll(".brush")
+            .filter(function (d) {
+                let attr = d3.select(this.parentNode.parentNode).datum();
+                // console.log(d + attr);
+                coord_dragging[d + attr].brushSelectionValue = d3.brushSelection(this);
+                // console.log(coord_dragging[d + attr].brushSelectionValue, d3.brushSelection(this))
+                return d3.brushSelection(this);
+            })
+            .each(function (d) {
+                // Get extents of brush along each active selection axis (the Y axes)
+                let attr = d3.select(this.parentNode.parentNode).datum();
+                actives.push({
+                    year: d,
+                    attr: attr,
+                    extent: d3.brushSelection(this).map(coord_dragging[d + attr].invert)
+                });
+            });
+
+        let selected = [];
+
+        // console.log(actives);
+        // Update foreground to only display selected values
+        coord_brush_ids = [];
+        actives.forEach(function (active, i) {
+
+            let tmp = yearly_filtered[year_data.indexOf(active.year)].filter(function (d) {
+                return active.extent[1] <= d[active.attr] && active.extent[0] >= d[active.attr]
+            }).map(d => d['PlayerID'])
+            if (i === 0)
+                coord_brush_ids = tmp;
+            else
+                coord_brush_ids = coord_brush_ids.filter(function (d) {
+                    if (tmp.indexOf(d) > -1)
+                        return true;
+                })
+
+        })
+        //
+        d3.selectAll('.foreline').selectAll('path').attr('display','none')
+        // foreground.style("display", function (d) {
+        //     return actives.every(function (active) {
+        //         let result = active.extent[1] <= d[active.dimension] && d[active.dimension] <= active.extent[0];
+        //         if (result) selected.push(d);
+        //         return result;
+        //     }) ? null : "none";
+        // });
+        coord_brush_ids.forEach(function (d) {
+            // console.log(d, d3.selectAll('.line-' + d))
+            d3.selectAll('.foreline').selectAll('.line-' + d)
+                .attr('display', 'true')
+        });
+
+
+    }
+
+
+    // timeline_svg.select('.attr-' + columnlistfinal.indexOf(c))
     timeline_rows.selectAll('.yearaxis')
         .data(year_data)
         .enter()
         .append('g')
         .attr('class', d => 'yearaxis year-' + d)
-        .attr('transform', (d, i) => 'translate(' + (i * each_year_width) + ',0)');
+        .attr('transform', (d, i) => 'translate(' + (20 + i * each_year_width) + ',0)')
+
 
     // axis setting
     columnlistfinal.forEach(function (c) {
         let attrscale = d3.scaleLinear().domain(column_extents[c]).range([each_attr_height, 0]);
+
         d3.select('.attr-' + columnlistfinal.indexOf(c)).selectAll('g.yearaxis')
             .call(d3.axisRight(attrscale))
+        d3.select('.attr-' + columnlistfinal.indexOf(c)).selectAll('g.yearaxis')
+            .append('g')
+            .attr('class', 'brush')
+            .each(function (d) {
+                let attr = d3.select(this.parentNode.parentNode).datum();
+                // console.log('each', d, attr)
+                coord_dragging[d + attr] = attrscale;
+                d3.select(this).call(coord_dragging[d + attr].brush = d3.brushY()
+                    .extent([[-10, 0], [10, 200]])
+                    .on("brush", pc_brush)
+                    .on("end", pc_brush)
+                )
+            })
 
         let line = d3.line()
             .defined(function (d) {
                 return d;
             })
             .x(function (d) {
-                return year_data.indexOf(d[0]) * each_year_width;
+                return 20 + year_data.indexOf(d[0]) * each_year_width;
             })
             .y(function (d) {
                 return attrscale(d[1])
@@ -2512,16 +2642,29 @@ function draw_parallel_coordinates() {
             path_data.push(tmp);
         });
         // console.log(path_data);
-        d3.select('.lines-' + columnlistfinal.indexOf(c))
+        timeline_svg.select('.attr-' + columnlistfinal.indexOf(c))
+            .select('.backline')
+            .selectAll('path')
+            .data(path_data)
+            .enter()
+            .append('path')
+            // .attr('class', d => 'line-' + d[0][2])
+            // .attr('fill', 'transparent')
+            // .attr('stroke', 'grey')
+            // .style('opacity', 0.6)
+            .attr('d', line);
+        timeline_svg.select('.attr-' + columnlistfinal.indexOf(c))
+            .select('.foreline')
             .selectAll('path')
             .data(path_data)
             .enter()
             .append('path')
             .attr('class', d => 'line-' + d[0][2])
-            .attr('fill', 'transparent')
-            .attr('stroke', 'grey')
-            .style('opacity', 0.8)
-            .attr('d', line);
+            // .attr('fill', 'transparent')
+            // .attr('stroke', 'blue')
+            // .style('opacity', 0.8)
+            .attr('d', line)
+            .attr('display', 'none');
         // let circle_data = [];
         // path_data.forEach(function (d) {
         //     for (i in d) {
