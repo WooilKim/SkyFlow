@@ -29,7 +29,7 @@ let filter_selected = [];
 let current_year = 1978;
 let selected_years = [];
 let selected_players = [];
-let columnlistfinal = ['PTS', 'AST', 'STL', 'BLK', 'TRB', 'ORB', 'DRB', '3P%', '3P', 'FG%', 'FG', 'G'];
+let columnlistfinal = [];
 let selected_columns = ['0', 'Year', 'G', 'ORB%', 'TRB%', 'AST%', 'STL%', 'BLK%', 'TOV%'];
 let skyline_columns = columnlistfinal;
 let yearly_filtered = [];
@@ -106,7 +106,7 @@ let flow_label_width = 30;
 let flow_detail_height = 20;
 let filter_ranges = {};
 let dragging = {};
-let column_orders = columnlistfinal.slice();
+let column_orders = [];
 const BUTTON_INVISIBLE = 2;
 const BUTTON_BLURRED = 1;
 const BUTTON_VISIBLE = 0;
@@ -129,111 +129,221 @@ function default_setting() {
 
 
 function draw_info() {
-
-    d3.csv("/static/skyflow/data/processed/NBA_columns_extent.csv").then(function (data) {
-        info_each_height = info_height / columnlistfinal.length;
-        console.log('detail', data);
-        // console.log(data);
-        // columnfinaldata = [];
-        // console.log(data);
-        let column_details = {};
-        columnlistfinal.forEach(function (c) {
-            data.forEach(function (d) {
-                if (d.column === c) {
-                    column_details[c] = d.detail;
-                }
-            })
-        })
-
-        console.log(column_details);
-        // for (let i = 0; i < data.length; i++) {
-        //     console.log(data[i]['column']);
-        //     if (columnlistfinal.indexOf(data[i]['column']) < 0)
-        //         continue;
-        //     else {
-        //         columnfinaldata.push(data[i])
-        //     }
-        // }
-        // console.log(columnfinaldata);
-        let infosvg = d3.select('div#info').append('svg')
-            .attr('height', function () {
-                return data.length * 30
-            })
-            .attr('width', 320);
-
-        let info_drag = d3.drag();
-        let infog = infosvg.selectAll('g')
-            .data(column_orders)
-            .enter()
-            .append('g')
-            .attr('class', 'inforow')
-            .attr('transform', function (d, i) {
-                return 'translate(0,' + (i * info_each_height) + ')';
-            })
-            .call(
-                info_drag
-                    .on('start', function (d) {
-                        dragging[d] = d3.event.y;
-                        d3.select(this).raise();
+    switch (current_dataset) {
+        case "NBA":
+            d3.csv("/static/skyflow/data/processed/NBA_columns_extent.csv").then(function (data) {
+                info_each_height = info_height / columnlistfinal.length;
+                console.log('detail', data);
+                // console.log(data);
+                // columnfinaldata = [];
+                // console.log(data);
+                let column_details = {};
+                columnlistfinal.forEach(function (c) {
+                    data.forEach(function (d) {
+                        if (d.column === c) {
+                            column_details[c] = d.detail;
+                        }
                     })
-                    .on('drag', function (d) {
-                        console.log(d3.event.y);
-                        dragging[d] = d3.event.y;
-                        d3.select(this).attr('transform', 'translate(0,' + d3.event.y + ')');
-                        column_orders.sort(function (a, b) {
-                            return position(a) - position(b);
-                        });
-                        console.log(column_orders)
-                        d3.selectAll(".inforow").attr("transform", function (d, i) {
-                            return "translate(0," + position(d) + ")";
-                        });
+                })
+
+                console.log(column_details);
+                // for (let i = 0; i < data.length; i++) {
+                //     console.log(data[i]['column']);
+                //     if (columnlistfinal.indexOf(data[i]['column']) < 0)
+                //         continue;
+                //     else {
+                //         columnfinaldata.push(data[i])
+                //     }
+                // }
+                // console.log(columnfinaldata);
+                let infosvg = d3.select('div#info').append('svg')
+                    .attr('height', function () {
+                        return data.length * 30
                     })
-                    .on('end', function (d) {
-                        delete dragging[d];
-                        d3.selectAll(".inforow").attr("transform", function (d, i) {
-                            return "translate(0," + position(d) + ")";
-                        });
+                    .attr('width', 320);
+
+                let info_drag = d3.drag();
+                let infog = infosvg.selectAll('g')
+                    .data(column_orders)
+                    .enter()
+                    .append('g')
+                    .attr('class', 'inforow')
+                    .attr('transform', function (d, i) {
+                        return 'translate(0,' + (i * info_each_height) + ')';
                     })
-            );
-        infog.append('rect')
-            .attr('class', 'row')
-            .attr('width', 320)
-            .attr('height', info_each_height);
-        infog.append('rect')
-            .attr('width', 10)
-            .attr('height', info_each_height)
-            .attr('fill', function (d, i) {
-                return colorscale(i);
+                    .call(
+                        info_drag
+                            .on('start', function (d) {
+                                dragging[d] = d3.event.y;
+                                d3.select(this).raise();
+                            })
+                            .on('drag', function (d) {
+                                console.log(d3.event.y);
+                                dragging[d] = d3.event.y;
+                                d3.select(this).attr('transform', 'translate(0,' + d3.event.y + ')');
+                                column_orders.sort(function (a, b) {
+                                    return position(a) - position(b);
+                                });
+                                console.log(column_orders)
+                                d3.selectAll(".inforow").attr("transform", function (d, i) {
+                                    return "translate(0," + position(d) + ")";
+                                });
+                            })
+                            .on('end', function (d) {
+                                delete dragging[d];
+                                d3.selectAll(".inforow").attr("transform", function (d, i) {
+                                    return "translate(0," + position(d) + ")";
+                                });
+                            })
+                    );
+                infog.append('rect')
+                    .attr('class', 'row')
+                    .attr('width', 320)
+                    .attr('height', info_each_height);
+                infog.append('rect')
+                    .attr('width', 10)
+                    .attr('height', info_each_height)
+                    .attr('fill', function (d, i) {
+                        return colorscale(i);
+                    })
+                    .style('opacity', 0.9)
+                infog.append('text')
+                    .text(function (d) {
+                        return d;
+                    })
+                    .style('text-anchor', 'middle')
+                    .style('alignment-baseline', 'middle')
+                    .style('font-size', '14px')
+                    .attr('x', 30)
+                    .attr('y', info_each_height / 2);
+                infog.append('text')
+                    .text(function (d) {
+                        return column_details[d];
+                    })
+                    .style('text-anchor', 'middle')
+                    .style('alignment-baseline', 'middle')
+                    .style('font-size', '14px')
+                    .attr('y', info_each_height / 2)
+                    .attr('x', 140)
+                infog.append('text')
+                    .text(function (d) {
+                        return column_extents[d][0] + ' ~ ' + column_extents[d][1];
+                    })
+                    .style('text-anchor', 'middle')
+                    .style('alignment-baseline', 'middle')
+                    .style('font-size', '14px')
+                    .attr('y', info_each_height / 2)
+                    .attr('x', 270)
             })
-            .style('opacity', 0.9)
-        infog.append('text')
-            .text(function (d) {
-                return d;
+            break;
+        case "NUMBEO":
+            d3.csv("/static/skyflow/data/processed/NUMBEO/NUMBEO_columns_extent.csv").then(function (data) {
+                info_each_height = info_height / columnlistfinal.length;
+                console.log('detail', data);
+                // console.log(data);
+                // columnfinaldata = [];
+                // console.log(data);
+                let column_details = {};
+                columnlistfinal.forEach(function (c) {
+                    data.forEach(function (d) {
+                        if (d.column === c) {
+                            column_details[c] = d.detail;
+                        }
+                    })
+                })
+
+                console.log(column_details);
+                // for (let i = 0; i < data.length; i++) {
+                //     console.log(data[i]['column']);
+                //     if (columnlistfinal.indexOf(data[i]['column']) < 0)
+                //         continue;
+                //     else {
+                //         columnfinaldata.push(data[i])
+                //     }
+                // }
+                // console.log(columnfinaldata);
+                let infosvg = d3.select('div#info').append('svg')
+                    .attr('height', function () {
+                        return data.length * 30
+                    })
+                    .attr('width', 320);
+
+                let info_drag = d3.drag();
+                let infog = infosvg.selectAll('g')
+                    .data(column_orders)
+                    .enter()
+                    .append('g')
+                    .attr('class', 'inforow')
+                    .attr('transform', function (d, i) {
+                        return 'translate(0,' + (i * info_each_height) + ')';
+                    })
+                    .call(
+                        info_drag
+                            .on('start', function (d) {
+                                dragging[d] = d3.event.y;
+                                d3.select(this).raise();
+                            })
+                            .on('drag', function (d) {
+                                console.log(d3.event.y);
+                                dragging[d] = d3.event.y;
+                                d3.select(this).attr('transform', 'translate(0,' + d3.event.y + ')');
+                                column_orders.sort(function (a, b) {
+                                    return position(a) - position(b);
+                                });
+                                console.log(column_orders)
+                                d3.selectAll(".inforow").attr("transform", function (d, i) {
+                                    return "translate(0," + position(d) + ")";
+                                });
+                            })
+                            .on('end', function (d) {
+                                delete dragging[d];
+                                d3.selectAll(".inforow").attr("transform", function (d, i) {
+                                    return "translate(0," + position(d) + ")";
+                                });
+                            })
+                    );
+                infog.append('rect')
+                    .attr('class', 'row')
+                    .attr('width', 320)
+                    .attr('height', info_each_height);
+                infog.append('rect')
+                    .attr('width', 10)
+                    .attr('height', info_each_height)
+                    .attr('fill', function (d, i) {
+                        return colorscale(i);
+                    })
+                    .style('opacity', 0.9)
+                infog.append('text')
+                    .text(function (d) {
+                        return d;
+                    })
+                    .style('text-anchor', 'middle')
+                    .style('alignment-baseline', 'middle')
+                    .style('font-size', '14px')
+                    .attr('x', 30)
+                    .attr('y', info_each_height / 2);
+                infog.append('text')
+                    .text(function (d) {
+                        return column_details[d];
+                    })
+                    .style('text-anchor', 'middle')
+                    .style('alignment-baseline', 'middle')
+                    .style('font-size', '14px')
+                    .attr('y', info_each_height / 2)
+                    .attr('x', 140)
+                infog.append('text')
+                    .text(function (d) {
+                        return column_extents[d][0] + ' ~ ' + column_extents[d][1];
+                    })
+                    .style('text-anchor', 'middle')
+                    .style('alignment-baseline', 'middle')
+                    .style('font-size', '14px')
+                    .attr('y', info_each_height / 2)
+                    .attr('x', 270)
             })
-            .style('text-anchor', 'middle')
-            .style('alignment-baseline', 'middle')
-            .style('font-size', '14px')
-            .attr('x', 30)
-            .attr('y', info_each_height / 2);
-        infog.append('text')
-            .text(function (d) {
-                return column_details[d];
-            })
-            .style('text-anchor', 'middle')
-            .style('alignment-baseline', 'middle')
-            .style('font-size', '14px')
-            .attr('y', info_each_height / 2)
-            .attr('x', 140)
-        infog.append('text')
-            .text(function (d) {
-                return column_extents[d][0] + ' ~ ' + column_extents[d][1];
-            })
-            .style('text-anchor', 'middle')
-            .style('alignment-baseline', 'middle')
-            .style('font-size', '14px')
-            .attr('y', info_each_height / 2)
-            .attr('x', 270)
-    })
+            break;
+    }
+
 }
 
 function set_svg() {
@@ -405,12 +515,15 @@ function read_skylines(opt) {
 }
 
 function read_data(opt) {
-    d3.json("/static/skyflow/data/processed/NBA_fillna_reduced_organized.json", row => typeClean(row)).then(function (data) {
-        original_dataset = data;
-        let tmp = {};
-        switch (opt) {
-            case "NBA":
+
+    let tmp = {};
+    switch (opt) {
+        case "NBA":
+            d3.json("/static/skyflow/data/processed/NBA_fillna_reduced_organized.json", row => typeClean(row)).then(function (data) {
+                original_dataset = data;
+                columnlistfinal = ['PTS', 'AST', 'STL', 'BLK', 'TRB', 'ORB', 'DRB', '3P%', '3P', 'FG%', 'FG', 'G'];
                 // read_skylines("NBA");
+                column_orders = columnlistfinal.slice();
                 current_year = 1978;
                 selected_years = [current_year];
                 year_data = d3.range(1978, 2016);
@@ -425,95 +538,137 @@ function read_data(opt) {
                 Object.keys(tmp).forEach(function (key) {
                     players.push([key, tmp[key]])
                 });
-                break;
-        }
-        year_data.forEach(function (d) {
-            let arr = original_dataset.filter(x => x['Year'] == d);
-            yearly_filtered.push(arr);
-            yearly_playerID.push(arr.map(x => x['PlayerID']));
-        });
-        // yearly_filtered.forEach(function (y) {
-        //     yearly_playerID.push(y.map(x => x[x['PlayerID']]))
-        // });
-        // columns = original_dataset.columns.slice(6,);
-        filter_columns = columnlistfinal;
-        // filter_columns.splice(0, 0, 'Salary');
-        filter_columns.forEach(function (d) {
-            column_extents[d] = d3.extent(original_dataset.map(x => +x[d]));
-        });
-        column_extents['dominance'] = d3.extent(original_dataset.map(x => +x['dom'].length));
+                year_data.forEach(function (d) {
+                    let arr = original_dataset.filter(x => x['Year'] == d);
+                    yearly_filtered.push(arr);
+                    yearly_playerID.push(arr.map(x => x['PlayerID']));
+                });
+                // yearly_filtered.forEach(function (y) {
+                //     yearly_playerID.push(y.map(x => x[x['PlayerID']]))
+                // });
+                // columns = original_dataset.columns.slice(6,);
+                filter_columns = columnlistfinal;
+                // filter_columns.splice(0, 0, 'Salary');
+                filter_columns.forEach(function (d) {
+                    column_extents[d] = d3.extent(original_dataset.map(x => +x[d]));
+                });
+                column_extents['dominance'] = d3.extent(original_dataset.map(x => +x['dom'].length));
 
-        original_dataset.forEach(function (p) {
-            if (!(p['PlayerID'] in coord_data)) {
-                coord_data[p['PlayerID']] = {};
-                columnlistfinal.forEach(function (c) {
-                    coord_data[p['PlayerID']][c] = [];
-                    coord_data[p['PlayerID']][c].push([p['Year'], p[c]]);
-                })
-            } else {
-                columnlistfinal.forEach(function (c) {
-                    // coord_data[p['PlayerID']][c] = [];
-                    if (coord_data[p['PlayerID']][c][coord_data[p['PlayerID']][c].length - 1][0] !== p['Year'] - 1) {
-                        coord_data[p['PlayerID']][c].push(null);
+                original_dataset.forEach(function (p) {
+                    if (!(p['PlayerID'] in coord_data)) {
+                        coord_data[p['PlayerID']] = {};
+                        columnlistfinal.forEach(function (c) {
+                            coord_data[p['PlayerID']][c] = [];
+                            coord_data[p['PlayerID']][c].push([p['Year'], p[c]]);
+                        })
+                    } else {
+                        columnlistfinal.forEach(function (c) {
+                            // coord_data[p['PlayerID']][c] = [];
+                            if (coord_data[p['PlayerID']][c][coord_data[p['PlayerID']][c].length - 1][0] !== p['Year'] - 1) {
+                                coord_data[p['PlayerID']][c].push(null);
+                            }
+                            coord_data[p['PlayerID']][c].push([p['Year'], p[c]]);
+                        })
                     }
-                    coord_data[p['PlayerID']][c].push([p['Year'], p[c]]);
                 })
-            }
-        })
-        // players = Array.from(new Set(original_dataset.map(x => [x['PlayerID'], x['Player']])));
-        // players.forEach(function (d) {
-        //     players_filter_dic[d] = {};
-        // });
-        // console.log(qid);
-        // if (qid > 0) {
-        //     let tmp_columns = [];
-        //
-        //     switch (qid) {
-        //         case 1:
-        //             tmp_columns = ["2P", "PTS", "AST", "STL", "PER"];
-        //             skyline_columns = tmp_columns.map(d => columns.indexOf(d))
-        //             break;
-        //         case 2:
-        //             tmp_columns = ["2P", "PTS", "AST", "STL"];
-        //             skyline_columns = tmp_columns.map(d => columns.indexOf(d))
-        //             break;
-        //         case 3:
-        //             tmp_columns = ["BLK", "ORB", "DRB", "TRB", "ORB%"];
-        //             skyline_columns = tmp_columns.map(d => columns.indexOf(d))
-        //             break;
-        //         case 4:
-        //             tmp_columns = ["AST%", "STL%", "BLK%", "FG"];
-        //             skyline_columns = tmp_columns.map(d => columns.indexOf(d))
-        //             break;
-        //         case 5:
-        //             tmp_columns = ["G", "PTS", "TRB", "AST", "Salary"];
-        //             skyline_columns = tmp_columns.map(d => columns.indexOf(d))
-        //             break;
-        //         default:
-        //             skyline_columns = [];
-        //     }
-        //     console.log(tmp_columns)
-        // }
-        // set_columnsvg();
-        // update_selected_column();
-        draw_slider();
-        draw_project_buttons();
-        for (let i in year_data) {
-            tsne_calculated.push(0)
-        }
-        histogram();
-        draw_flow();
-        draw_list();
-        draw_parallel_coordinates();
-        draw_info();
-    });
+                draw_slider();
+                draw_project_buttons();
+                for (let i in year_data) {
+                    tsne_calculated.push(0)
+                }
+                histogram();
+                draw_flow();
+                draw_list();
+                draw_parallel_coordinates();
+                draw_info();
+
+            });
+            break;
+        case "NUMBEO":
+            d3.json("/static/skyflow/data/processed/NUMBEO/test.json", row => typeClean(row)).then(function (data) {
+                original_dataset = data;
+                columnlistfinal = ['QoL', 'PP', 'S', 'HC', 'CoL', 'PPI', 'TCT', 'P', 'C'];
+                column_orders = columnlistfinal.slice();
+                current_year = 2012;
+                selected_years = [current_year];
+                year_data = d3.range(2012, 2020);
+                year_date = d3.range(2012, 2020).map(function (d) {
+                    return new Date(d, 1, 1);
+                });
+                original_dataset.forEach(function (p) {
+                    if (Object.keys(tmp).indexOf(p['PlayerID']) < 0) {
+                        tmp[p['PlayerID']] = p['City']
+                    }
+                })
+                Object.keys(tmp).forEach(function (key) {
+                    players.push([key, tmp[key]])
+                });
+                year_data.forEach(function (d) {
+                    let arr = original_dataset.filter(x => x['Year'] == d);
+                    yearly_filtered.push(arr);
+                    yearly_playerID.push(arr.map(x => x['PlayerID']));
+                });
+                // yearly_filtered.forEach(function (y) {
+                //     yearly_playerID.push(y.map(x => x[x['PlayerID']]))
+                // });
+                // columns = original_dataset.columns.slice(6,);
+                filter_columns = columnlistfinal;
+                // filter_columns.splice(0, 0, 'Salary');
+                filter_columns.forEach(function (d) {
+                    column_extents[d] = d3.extent(original_dataset.map(x => +x[d]));
+                });
+                column_extents['dominance'] = d3.extent(original_dataset.map(x => +x['dom'].length));
+
+                original_dataset.forEach(function (p) {
+                    if (!(p['PlayerID'] in coord_data)) {
+                        coord_data[p['PlayerID']] = {};
+                        columnlistfinal.forEach(function (c) {
+                            coord_data[p['PlayerID']][c] = [];
+                            coord_data[p['PlayerID']][c].push([p['Year'], p[c]]);
+                        })
+                    } else {
+                        columnlistfinal.forEach(function (c) {
+                            // coord_data[p['PlayerID']][c] = [];
+                            if (coord_data[p['PlayerID']][c][coord_data[p['PlayerID']][c].length - 1][0] !== p['Year'] - 1) {
+                                coord_data[p['PlayerID']][c].push(null);
+                            }
+                            coord_data[p['PlayerID']][c].push([p['Year'], p[c]]);
+                        })
+                    }
+                })
+                draw_slider();
+                draw_project_buttons();
+                for (let i in year_data) {
+                    tsne_calculated.push(0)
+                }
+                histogram();
+                draw_flow();
+                draw_list();
+                draw_parallel_coordinates();
+                draw_info();
+            });
+            break;
+    }
+
+
 }
 
 function histogram() {
-    d3.json("/static/skyflow/data/processed/" + current_dataset + "_histogram.json").then(function (data) {
-        histogram_data = data;
-        drawfilter();
-    });
+    switch (current_dataset) {
+        case "NBA":
+            d3.json("/static/skyflow/data/processed/" + current_dataset + "_histogram.json").then(function (data) {
+                histogram_data = data;
+                drawfilter();
+            });
+            break;
+        case "NUMBEO":
+            d3.json("/static/skyflow/data/processed/NUMBEO/" + current_dataset + "_histogram.json").then(function (data) {
+                histogram_data = data;
+                drawfilter();
+            });
+            break;
+    }
+
 }
 
 
@@ -540,7 +695,7 @@ function set_progress_bar() {
             read_data(selected);
         });
     dataset_select.selectAll('option')
-        .data(['Select Dataset', 'NBA', 'MLB'])
+        .data(['Select Dataset', 'NBA', 'NUMBEO'])
         .enter()
         .append('option')
         .style('height', '20px')
@@ -2578,7 +2733,7 @@ function draw_parallel_coordinates() {
 
         })
         //
-        d3.selectAll('.foreline').selectAll('path').attr('display','none')
+        d3.selectAll('.foreline').selectAll('path').attr('display', 'none')
         // foreground.style("display", function (d) {
         //     return actives.every(function (active) {
         //         let result = active.extent[1] <= d[active.dimension] && d[active.dimension] <= active.extent[0];
