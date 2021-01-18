@@ -30,10 +30,6 @@ python manage.py runserver 128.0.0.1:8000
 This will run the django web server at the localhost.
 You can use SkyFlow by accessing 127.0.0.1:8000 on your web browser (e.g., Chrome).
 
-## Live demo
-
-You can find a running system to test at [callforcode.mybluemix.net](http://callforcode.mybluemix.net/)
-
 ## Authors
 
 * **Wooil Kim**
@@ -49,4 +45,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <!-- ## Acknowledgments -->
 
 <!-- * Based on [Billie Thompson's README template](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2). -->
-
