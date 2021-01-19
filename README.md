@@ -7,7 +7,7 @@ A GitHub repository for SkyFlow.
 ## Short description
 
 SkyFlow is a visual analysis system for skyline queries.
-SkyFlow is optimized for display with 5120 * 2880 resolution.
+It is optimized for display with 5120 * 2880 resolution.
 
 ## Getting started
 
