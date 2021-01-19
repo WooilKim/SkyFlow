@@ -10,14 +10,14 @@ SkyFlow is a visual analysis system for skyline queries.
 
 ## Getting started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 ### Prerequisites
 
 SkyFlow requires
 
-- Python 3.7 
-- Django :
+- Python 3.7.0
+- Django : 2.1.2
 
 ## Running the tests
 
